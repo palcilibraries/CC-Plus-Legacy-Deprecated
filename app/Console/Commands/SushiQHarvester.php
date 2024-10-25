@@ -123,13 +123,6 @@ class SushiQHarvester extends Command
                 // Add harvest and sushiSetting relations to the jobs collection
                 $jobs->load('harvest','harvest.sushiSetting','harvest.sushiSetting.provider');
                 foreach ($jobs as $job) {
-                   // Skip "Paused" and any "Pending" harvest updated within the last 10 minutes
-                    if ($job->harvest->status == 'Paused' ||
-                        ($job->harvest->status == 'Pending' && strtotime($job->harvest->updated_at) > $ten_ago) ) {
-                        $skip_count++;
-                        continue;
-                    }
-
                    // If the job points to a job with a wrong status (could have changed since creation), or the
                    // the harvest record is AWOL, skip and delete the job record
                     $keepJob = true;
@@ -141,6 +134,13 @@ class SushiQHarvester extends Command
                     } else if ($job->harvest->status=='ReQueued' && (substr($job->harvest->updated_at, 0, 10)==date("Y-m-d"))) {
                         $keepJob = false;
                     }
+
+                    // Skip "Paused" and any "Pending" harvest updated within the last 10 minutes
+                     if ($keepJob && $job->harvest->status == 'Paused' ||
+                         ($job->harvest->status == 'Pending' && strtotime($job->harvest->updated_at) > $ten_ago) ) {
+                         $skip_count++;
+                         continue;
+                     }
 
                    // Check sushi settings
                     if ($keepJob && is_null($job->harvest->sushiSetting)) {     // settings gone? toss the job
