@@ -136,10 +136,12 @@ class SushiQHarvester extends Command
                     }
 
                     // Skip "Paused" and any "Pending" harvest updated within the last 10 minutes
-                     if ($keepJob && $job->harvest->status == 'Paused' ||
-                         ($job->harvest->status == 'Pending' && strtotime($job->harvest->updated_at) > $ten_ago) ) {
-                         $skip_count++;
-                         continue;
+                     if ($keepJob) {
+                         if ($job->harvest->status == 'Paused' ||
+                             ($job->harvest->status == 'Pending' && strtotime($job->harvest->updated_at) > $ten_ago) ) {
+                            $skip_count++;
+                            continue;
+                         }
                      }
 
                    // Check sushi settings
