@@ -111,7 +111,7 @@ class SushiQHarvester extends Command
                 if (!$con->is_active) {
                     // Set all related harvests to "Stopped"
                     $harvest_ids = $jobs->pluck('harvest_id')->toArray();
-                    $res = HarvestLog::whereIn('id',$harvest_ids)->update(['status' => 'Stopped']);
+                    $res = HarvestLog::whereIn('id',$harvest_ids)->update(['status' => 'Fail']);
                     // Remove the jobs from the Queue
                     $job_ids = $jobs->pluck('id')->toArray();
                     $res = SushiQueueJob::whereIn('id',$job_ids)->delete();
@@ -163,7 +163,7 @@ class SushiQHarvester extends Command
                                                        'detail' => $error->explanation . ', ' . $error->suggestion]);
                             }
                             $job->harvest->error_id = 9050;
-                            $job->harvest->status = 'Stopped';
+                            $job->harvest->status = 'Fail';
                             $keepJob = false;
                         }
                     }
@@ -174,7 +174,7 @@ class SushiQHarvester extends Command
                         if (is_null($report)) {     // report gone? toss entry
                             $this->line($ts . " QueueHarvester: Unknown Report ID: " . $job->harvest->report_id .
                                         ' , queue entry removed and harvest status set to Stopped.');
-                            $job->harvest->status = 'Stopped';
+                            $job->harvest->status = 'Fail';
                             $job->harvest->save();
                             $keepJob = false;
                         }
@@ -210,7 +210,7 @@ class SushiQHarvester extends Command
                         }
                         $job->delete();
                         $job->harvest->error_id = 9060;
-                        $job->harvest->status = 'Stopped';
+                        $job->harvest->status = 'Fail';
                         $job->harvest->save();
                         continue;
                     }
@@ -226,7 +226,7 @@ class SushiQHarvester extends Command
                         }
                         $job->delete();
                         $job->harvest->error_id = 9070;
-                        $job->harvest->status = 'Stopped';
+                        $job->harvest->status = 'Fail';
                         $job->harvest->save();
                         continue;
                     }
@@ -369,7 +369,7 @@ class SushiQHarvester extends Command
                         if ($job->harvest->attempts >= $max_retries) {
                             $job->harvest->status = 'Fail';
                             Alert::insert(['yearmon' => $yearmon, 'prov_id' => $setting->prov_id,
-                                           'harvest_id' => $job->harvest->id, 'status' => 'Stopped', 'created_at' => $ts]);
+                                           'harvest_id' => $job->harvest->id, 'status' => 'NoRetries', 'created_at' => $ts]);
                         } else {
                             $job->harvest->status = 'ReQueued'; // ReQueue by default
                         }

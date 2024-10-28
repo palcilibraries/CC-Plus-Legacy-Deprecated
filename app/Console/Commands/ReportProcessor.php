@@ -117,7 +117,7 @@ class ReportProcessor extends Command
         $severities_error = Severity::where('name', '=', 'Error')->value('id');
 
        // Get records for all "Retrieved" Harvestlogs
-        $skip_statuses = array('Success', 'Fail', 'New');
+        $skip_statuses = array('Success', 'Fail', 'New', 'NoRetries');
         $all_harvests = HarvestLog::with('sushiSetting','sushiSetting.provider','sushiSetting.institution')
                                   ->whereNotIn('status', $skip_statuses)->get();
 
