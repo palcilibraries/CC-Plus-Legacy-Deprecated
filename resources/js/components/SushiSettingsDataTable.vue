@@ -663,6 +663,7 @@
                       this.success = "Selected credentials successfully updated.";
                   }
                 }
+                this.selectedRows = [];
                 this.bulkAction = '';
                 this.dtKey += 1;           // update the datatable
                 return true;
