@@ -49,7 +49,7 @@ class HarvestLogController extends Controller
 
        // Assign optional inputs to $filters array
        $filters = array('institutions' => [], 'providers' => [], 'reports' => [], 'harv_stat' => [], 'updated' => null,
-                        'groups' => [], 'fromYM' => null, 'toYM' => null, 'source' => null, 'codes' => []);
+                        'groups' => [], 'fromYM' => null, 'toYM' => null, 'codes' => [], 'yymms' => []);
        if ($request->input('filters')) {
            $filter_data = json_decode($request->input('filters'));
            foreach ($filter_data as $key => $val) {
@@ -61,7 +61,7 @@ class HarvestLogController extends Controller
            $keys = array_keys($filters);
            foreach ($keys as $key) {
                if ($request->input($key)) {
-                   if ($key=='fromYM' || $key=='toYM' || $key=='updated' || $key=='source') {
+                   if ($key=='fromYM' || $key=='toYM' || $key=='updated') {
                        $filters[$key] = $request->input($key);
                    } elseif (is_numeric($request->input($key))) {
                        $filters[$key] = array(intval($request->input($key)));
@@ -188,6 +188,12 @@ class HarvestLogController extends Controller
                $limit_to_insts[] = $thisUser->inst_id;
            }
 
+           // Limit status if an empty array is passed in
+           if (count($filters["harv_stat"]) == 0) {
+               $filters["harv_stat"] = array('Success','Fail','Stopped');
+
+           }
+
            // Setup limit_to_provs with the provID's we'll pull settings for
            $limit_to_provs = array();   // default to no limit
            if ($show_all && in_array(0,$filters["providers"])) {   //  Get all consortium providers?
@@ -195,17 +201,6 @@ class HarvestLogController extends Controller
                                                ->pluck('id')->toArray();
            } else if (!in_array(-1,$filters["providers"]) && count($filters['providers']) > 0) {
                $limit_to_provs = $filters['providers'];
-           }
-
-           // Set array of statuses to pull (if filter is set)
-           $statuses = array();
-           if (sizeof($filters['harv_stat']) > 0) {
-               if ( in_array("Queued", $filters['harv_stat']) ) {
-                   $statuses = array('Queued', 'New', 'Pending', 'Requeued');
-               }
-               foreach ($filters['harv_stat'] as $stat) {
-                   if ($stat != "Queued") $statuses[] = $stat;
-               }
            }
 
            // Get the harvest rows based on sushisettings
@@ -227,14 +222,14 @@ class HarvestLogController extends Controller
                ->when(sizeof($filters['codes']) > 0, function ($qry) use ($filters) {
                    return $qry->whereIn('error_id', $filters['codes']);
                })
-               ->when(sizeof($statuses) > 0, function ($qry) use ($statuses) {
-                   return $qry->whereIn('status', $statuses);
+               ->when(sizeof($filters['harv_stat']) > 0, function ($qry) use ($filters) {
+                   return $qry->whereIn('status', $filters['harv_stat']);
                })
                ->when($filters['fromYM'], function ($qry) use ($filters) {
                    return $qry->where('yearmon', '>=', $filters['fromYM']);
                })
-               ->when($filters['source'] , function ($qry) use ($filters) {
-                  return $qry->where('source',substr($filters['source'],0,1));
+               ->when(count($filters['yymms']) > 0, function ($qry) use ($filters) {
+                   return $qry->whereIn('yearmon', $filters['yymms']);
                })
                ->when($filters['toYM'], function ($qry) use ($filters) {
                    return $qry->where('yearmon', '<=', $filters['toYM']);
@@ -250,12 +245,12 @@ class HarvestLogController extends Controller
 
            // Make arrays for updating the filter options in the U/I
            $codes = $harvest_data->whereNotNull('error_id')->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
-           $statuses = $harvest_data->unique('status')->sortBy('status')->pluck('status')->toArray();
            $rept_ids = $harvest_data->unique('report_id')->sortBy('report_id')->pluck('report_id')->toArray();
            $prov_ids = $harvest_data->unique('sushiSetting.provider')->sortBy('sushiSetting.provider.name')
                                     ->pluck('sushiSetting.prov_id')->toArray();
            $inst_ids = $harvest_data->unique('sushiSetting.institution')->sortBy('sushiSetting.institution.name')
                                     ->pluck('sushiSetting.inst_id')->toArray();
+           $yymms = $harvest_data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
 
            // Format records for display , limit to 500 output records
            $updated_ym = array();
@@ -288,8 +283,8 @@ class HarvestLogController extends Controller
            });
            array_unshift($updated_ym , 'Last 24 hours');
            return response()->json(['harvests' => $harvests, 'updated' => $updated_ym, 'truncated' => $truncated, 200,
-                                    'code_opts' => $codes, 'stat_opts' => $statuses, 'rept_opts' => $rept_ids,
-                                    'prov_opts' => $prov_ids, 'inst_opts' => $inst_ids]);
+                                    'code_opts' => $codes, 'rept_opts' => $rept_ids, 'prov_opts' => $prov_ids,
+                                    'inst_opts' => $inst_ids, 'yymms' => $yymms]);
        }
    }
 
@@ -634,74 +629,45 @@ class HarvestLogController extends Controller
        // The new status will be based on one of 2 possible values:
        //   Queued: resets attempts to zero and requeues the harvest for immediate retrying
        //   Stopped: Sets harvest to "Stopped", regardless of what it was before.
-       $new_status_allowed = array('Queued', 'Stopped', 'Pause', 'Resume');
+       $new_status_allowed = array('Pause', 'ReStart');
        if (!in_array($input['status'], $new_status_allowed)) {
            return response()->json(['result' => false,
                                     'msg' => 'Invalid request: status cannot be set to requested value.']);
+       }
+
+       // Get consortium info
+       $con = Consortium::where("ccp_key", session("ccp_con_key"))->first();
+       if (!$con) {
+           return response()->json(['result' => false, 'msg' => 'Error: Corrupt session or consortium settings']);
        }
 
        // Get the harvest, keep original status
        $harvest = HarvestLog::findOrFail($input['id']);
        $original_status = $harvest->status;
 
-       // Stopping a harvest also means deleting any corresponding job thats in the queue
-       if ($input['status'] == 'Stopped') {
-           $harvest->status = 'Stopped';
-           $existing_job = SushiQueueJob::where('harvest_id', '=', $harvest->id)->first();
-           if ($existing_job) {
-               $existing_job->delete();
-           }
-
        // Setting Queued means attempts get set to zero
-       } else if ($input['status'] == 'Queued') {
+       if ($input['status'] == 'Pause') {
+           $harvest->status = 'Paused';
+       // Setting Queued means attempts get set to zero
+       // Restart will reset attempts and create a SushiQueueJob if one does not exist
+       } else if ($input['status'] == 'ReStart') {
+           $sushiJob = SushiQueueJob::where('consortium_id',$con->id)->where('harvest_id',$harvest->id)->first();
+           if (!$sushiJob) {
+               try {
+                   $newjob = SushiQueueJob::create(['consortium_id' => $con->id,
+                                                    'harvest_id' => $harvest->id,
+                                                    'replace_data' => 1
+                                                  ]);
+               } catch (\Exception $e) {
+                   return response()->json(['result' => false, 'msg' => 'Error creating job entry in global table!']);
+               }
+           }
            $harvest->attempts = 0;
            $harvest->status = 'Queued';
-       // Resume leaves attempts unchanged and assumes the SushiQueueJob still exists
-       // Both Pause and Resume only modify the HarvestLog record
-       } else {
-           $harvest->status = ($input['status'] == 'Resume') ? 'Queued' : 'Paused';
        }
 
-       // Update the harvest record
-       try {
-           $harvest->save();
-       } catch (\Exception $e) {
-           return response()->json(['result' => false, 'msg' => 'Error updating harvest!']);
-       }
-       $harvest['updated'] = date("Y-m-d H:i", strtotime($harvest->updated_at));
-
-       // If we're resetting to Queued
-       if ($harvest->status == 'Queued' && $input['status'] != 'Resume') {
-           // Get consortium record
-           $con = Consortium::where('ccp_key', '=', session('ccp_con_key'))->first();
-           if (!$con) {
-               return response()->json(['result' => false, 'msg' => 'Error: Corrupt session or consortium settings']);
-           }
-
-           // If the harvest was originally set with status = 'Waiting'
-           if ($original_status == 'Waiting' &&  !is_null(config('ccplus.reports_path'))) {
-               // get rid of the downloaded data file(s)
-               $searchPat = config('ccplus.reports_path') . $con->id . '/0_unprocessed/' . $harvest->id . "_*";
-               $matches = glob($searchPat);
-               foreach ($matches as $_file) {
-                   unlink($_file);
-               }
-           }
-
-           // Create a Job entry if it doesn't exist
-           try {
-               $newjob = SushiQueueJob::create(['consortium_id' => $con->id,
-                                                'harvest_id' => $harvest->id,
-                                                'replace_data' => 1
-                                              ]);
-           } catch (QueryException $e) {
-               $code = $e->errorInfo[1];
-               if ($code != '1062') {     // If already in queue, continue silently
-                   $msg = 'Failure adding Harvest ID: ' . $harvest->id . ' to Queue! Error ' . $code;
-                   return response()->json(['result' => false, 'msg' => $msg]);
-               }
-           }
-       }
+       // Update the harvest record and return
+       $harvest->save();
        return response()->json(['result' => true, 'status' => $harvest->status]);
    }
 
@@ -856,6 +822,14 @@ class HarvestLogController extends Controller
            $job->delete();
        }
 
+       // Delete stored data for the harvest
+       $related_sushi_ids = $this->deleteStoredData( [$id] );
+
+       // Update last_harvest setting for affected sushi settings based on what's left
+       if ( count($related_sushi_ids) > 0) {
+           $this->resetLastHarvest($related_sushi_ids);
+       }
+
        // Delete the harvestlog record itself
        $record->delete();
        return response()->json(['result' => true, 'msg' => 'Log record deleted successfully']);
@@ -882,14 +856,14 @@ class HarvestLogController extends Controller
        }
 
        // Get the harvests requested
-       $harvests = HarvestLog::whereIn('id', $input['harvests'])->get();
+       $harvest_data = HarvestLog::with('sushiSetting','report')->whereIn('id', $input['harvests'])->get();
        $skipped = 0;
        $msg = "Result: ";
 
        // Build a list of IDs that current user allowed to delete
        $deleted = 0;
        $deleteable_ids = [];
-       foreach ($harvests as $harvest) {
+       foreach ($harvest_data as $harvest) {
            if (!$harvest->canManage()) {
                $skipped++;
                continue;
@@ -908,12 +882,20 @@ class HarvestLogController extends Controller
        // Delete any related jobs from the global queue before deleting the harvests
        $result = SushiQueueJob::where('consortium_id',$con->id)->whereIn('harvest_id', $deleteable_ids)->delete();
 
-       // Delete the harvests
-       $deleted = HarvestLog::whereIn('id', $deleteable_ids)->delete();
+       // Delete stored data for the harvest(s)
+       $related_sushi_ids = $this->deleteStoredData($deleteable_ids);
+
+       // Delete the harvest record(s)
+       $result = HarvestLog::whereIn('id', $deleteable_ids)->delete();
+
+       // Update last_harvest setting for affected sushi settings based on what's left
+       if ( count($related_sushi_ids) > 0) {
+           $this->resetLastHarvest($related_sushi_ids);
+       }
 
        // return result
-       $msg .= $deleted . " records deleted";
-       $msg .= ($skipped>0) ? ", and " . $skipped . "records skipped." : " successfully.";
+       $msg .= count($deleteable_ids) . " harvests deleted";
+       $msg .= ($skipped>0) ? ", and " . $skipped . "harvests skipped." : " successfully.";
        return response()->json(['result' => true, 'msg' => $msg, 'removed' => $deleteable_ids]);
    }
 
@@ -1017,7 +999,7 @@ class HarvestLogController extends Controller
        // Setup "display names" for internal system status values
        $displayStatus = array('Queued' => 'Harvest Queue', 'Harvesting' => 'Harvesting', 'Pending' => 'Queued by Vendor',
                               'Paused' => 'Paused', 'ReQueued' => 'ReQueued', 'Waiting' => 'Process Queue',
-                              'Processing' => 'Processing');
+                              'Processing' => 'Processing', 'NoRetries' => "Out of Retries");
 
        // Get the harvests, by-status, that we're interested in
        $data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
@@ -1165,6 +1147,53 @@ class HarvestLogController extends Controller
            }
        }
        return $rec;
+   }
+
+   /**
+    * delete stored data records for a given array of harvest ids
+    *
+    * @param  Array  $harvest_ids
+    * @return Array  $reset_ids : arraay of affected sushi setting IDs
+    */
+   private function deleteStoredData($harvest_ids)
+   {
+       $reset_ids = array();  // will hold sushi setting Ids needing updating
+       $conso_db = config('database.connections.consodb.database');
+       $harvests = HarvestLog::with('sushiSetting','report')->whereIn('id',$harvest_ids)->get();
+       foreach ($harvests as $harvest) {
+           if (!$harvest->report || !$harvest->sushiSetting) continue;
+           $table = $conso_db . "." . strtolower($harvest->report->name) . "_report_data";
+           // Delete the data rows
+           $result = DB::table($table)
+                       ->where('inst_id',$harvest->sushiSetting->inst_id)
+                       ->where('prov_id',$harvest->sushiSetting->prov_id)
+                       ->where('yearmon',$harvest->yearmon)
+                       ->delete();
+           // If we just deleted a harvest that matches the last_harvest for it's related sushisetting,
+           // add the sushisetting_id to $reset_ids (there could be multiple deletions, so we'll track
+           // the IDs and update them after deleting all the data records).
+           if ($harvest->sushiSetting->last_harvest == $harvest->yearmon &&
+               !in_array($harvest->sushisettings_id,$reset_ids)) {
+               $reset_ids[] = $harvest->sushisettings_id;
+           }
+       }
+       return $reset_ids;
+   }
+
+   /**
+    * Update last_harvest for havest sushisetting(s)
+    *
+    * @param  Array  $setting_ids
+    */
+   private function resetLastHarvest($setting_ids)
+   {
+       // Update affected sushi settings
+
+       $sushi_settings = SushiSetting::with('harvestLogs')->whereIn('id',$setting_ids)->get();
+       foreach ($sushi_settings as $setting) {
+           $setting->last_harvest = $setting->harvestLogs->where('status','Success')->max('yearmon');
+           $setting->save();
+       }
    }
 
 }
