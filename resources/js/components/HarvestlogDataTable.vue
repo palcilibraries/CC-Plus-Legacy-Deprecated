@@ -1,36 +1,24 @@
 <template>
   <div>
-    <div class="d-flex pa-0 align-center">
-      <div v-if="datesFromTo!='|'" class="x-box">
-        <img src="/images/red-x-16.png" width="100%" alt="clear date range" @click="clearFilter('date_range')"/>&nbsp;
-      </div>
-      <date-range :minym="minYM" :maxym="maxYM" :ymfrom="filter_by_fromYM" :ymto="filter_by_toYM" :key="rangeKey"
-      ></date-range>
-      <v-col class="d-flex px-4 align-center" cols="2" sm="2">
+    <v-row no-gutters>
+      <v-col class="d-flex" cols="3">&nbsp;</v-col>
+      <v-col class="d-flex align-center" cols="3">
         <v-btn class='btn' small color="primary" @click="updateLogRecords()">{{ update_button }}</v-btn>
       </v-col>
-      <v-col class="d-flex px-4 align-center" cols="2" sm="2">
+      <v-col class="d-flex align-center" cols="3">
         <v-btn class='btn' small type="button" @click="clearAllFilters()">Clear Filters</v-btn>
       </v-col>
-      <v-col v-if="truncatedResult" class="d-flex px-2 align-center" cols="4">
-        <span class="fail" role="alert">Display Truncated To 500 Records</span>
-      </v-col>
-    </div>
+    </v-row>
     <v-row no-gutters>
-      <v-col class="d-flex px-2 align-center" cols="2" sm="2">
-        <div v-if="mutable_filters['updated']!=null && mutable_filters['updated']!=''" class="x-box">
-          <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('updated')"/>&nbsp;
-        </div>
-        <v-select :items="mutable_updated" v-model="mutable_filters['updated']" @change="updateFilters('updated')"
-                  label="Updated"
-        ></v-select>
+      <v-col v-if="is_admin" class="d-flex px-2 align-center" cols="2">
+        <v-switch v-model="conso_switch" dense label="Limit to Consortium" @change="updateConsoOnly()"></v-switch>
       </v-col>
-      <v-col class="d-flex px-2 align-center" cols="2" sm="2">
+      <v-col class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['providers'].length>0" class="x-box">
             <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('providers')"/>&nbsp;
         </div>
         <v-autocomplete :items="mutable_options['providers']" v-model="mutable_filters['providers']"
-                        @change="updateFilters('providers')" multiple label="Provider(s)" item-text="name" item-value="id">
+                        @change="updateFilters('providers')" multiple label="Platform(s)" item-text="name" item-value="id">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('providers')">
                <span v-if="allSelected.providers">Clear Selections</span>
@@ -48,7 +36,7 @@
         </v-autocomplete>
       </v-col>
       <v-col v-if="institutions.length>1 && (inst_filter==null || inst_filter=='I')"
-             class="d-flex px-2 align-center" cols="2" sm="2">
+             class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['institutions'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('institutions')"/>&nbsp;
         </div>
@@ -73,7 +61,7 @@
         </v-autocomplete>
       </v-col>
       <v-col v-if="groups.length>1 && (inst_filter==null || inst_filter=='G') && (is_admin || is_viewer)"
-             class="d-flex px-2 align-center" cols="2" sm="2">
+             class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['groups'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('groups')"/>&nbsp;
         </div>
@@ -95,7 +83,7 @@
           </template>
         </v-autocomplete>
       </v-col>
-      <v-col class="d-flex px-2 align-center" cols="2" sm="2">
+      <v-col class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['reports'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('reports')"/>&nbsp;
         </div>
@@ -103,159 +91,176 @@
                   @change="updateFilters('reports')" label="Report(s)" item-text="name" item-value="id"
         ></v-select>
       </v-col>
-      <v-col class="d-flex px-2 align-center" cols="2" sm="2">
-        <div v-if="mutable_filters['harv_stat'].length>0" class="x-box">
-          <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('harv_stat')"/>&nbsp;
+      <v-col class="d-flex px-2 align-center" cols="2">
+        <div v-if="mutable_filters['yymms'].length>0" class="x-box">
+            <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('yymms')"/>&nbsp;
         </div>
-        <v-select :items="mutable_options['harv_stat']" v-model="mutable_filters['harv_stat']" @change="updateFilters('harv_stat')"
-                  multiple label="Status(es)" item-text="name" item-value="name">
+        <v-autocomplete :items="mutable_options['yymms']" v-model="mutable_filters['yymms']"
+                        @change="updateFilters('yymms')" multiple label="Usage Date(s)" item-text="name" item-value="id">
           <template v-slot:prepend-item>
-            <v-list-item @click="filterAll('harv_stat')">
-               <span v-if="allSelected.harv_stat">Clear Selections</span>
+            <v-list-item @click="filterAll('yymms')">
+               <span v-if="allSelected.yymms">Clear Selections</span>
                <span v-else>Enable All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>
           <template v-slot:selection="{ item, index }">
-            <span v-if="index == 0 && allSelected.harv_stat">All Status</span>
-            <span v-else-if="index < 2 && !allSelected.harv_stat">{{ item }}</span>
-            <span v-else-if="index === 2 && !allSelected.harv_stat" class="text-grey text-caption align-self-center">
-              &nbsp; +{{ mutable_filters['harv_stat'].length-2 }} more
+            <span v-if="index==0 && allSelected.yymms">All Months</span>
+            <span v-else-if="index==0 && !allSelected.yymms">{{ item }}</span>
+            <span v-else-if="index===1 && !allSelected.yymms" class="text-grey text-caption align-self-center">
+              &nbsp; +{{ mutable_filters['yymms'].length-1 }} more
             </span>
-            <span v-if="index <= 1 && index < mutable_filters['harv_stat'].length-1 && !allSelected.harv_stat">, </span>
+          </template>
+        </v-autocomplete>
+      </v-col>
+    </v-row>
+    <v-row no-gutters>
+      <v-col class="d-flex px-2 align-center" cols="3">
+        <div v-if="datesFromTo!='|'" class="x-box">
+          <img src="/images/red-x-16.png" width="100%" alt="clear date range" @click="clearFilter('date_range')"/>&nbsp;
+        </div>
+        <date-range :minym="minYM" :maxym="maxYM" :ymfrom="filter_by_fromYM" :ymto="filter_by_toYM" :key="rangeKey"
+        ></date-range>
+      </v-col>
+      <v-col class="d-flex px-2" cols="2">
+        <div v-if="mutable_filters['updated']!=null && mutable_filters['updated']!=''" class="x-box">
+          <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('updated')"/>&nbsp;
+        </div>
+        <v-select :items="mutable_updated" v-model="mutable_filters['updated']" @change="updateFilters('updated')"
+                  label="Updated"
+        ></v-select>
+      </v-col>
+      <v-col v-if="truncatedResult" class="d-flex px-2 align-center" cols="3">
+        <span class="fail" role="alert">Result Truncated To 500 Records</span>
+      </v-col>
+      <v-col v-else class="d-flex" cols="3">&nbsp;</v-col>
+      <v-col v-if="mutable_options['codes'].length>0" class="d-flex px-2 align-center" cols="2">
+        <div v-if="mutable_filters['codes'].length>0" class="x-box">
+          <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
+        </div>
+        <v-select :items="mutable_options['codes']" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
+                  label="Error Code">
+          <template v-slot:prepend-item>
+            <v-list-item @click="filterAll('codes')">
+               <span v-if="allSelected.codes">Clear Selections</span>
+               <span v-else>Enable All</span>
+            </v-list-item>
+            <v-divider class="mt-1"></v-divider>
+          </template>
+          <template v-slot:selection="{ item, index }">
+            <span v-if="index == 0 && allSelected.codes">All Error Codes</span>
+            <span v-else-if="index < 2 && !allSelected.codes">{{ item }}</span>
+            <span v-else-if="index === 2 && !allSelected.codes" class="text-grey text-caption align-self-center">
+              &nbsp; +{{ mutable_filters['codes'].length-2 }} more
+            </span>
+            <span v-if="index <= 1 && index < mutable_filters['codes'].length-1 && !allSelected.codes">, </span>
           </template>
         </v-select>
       </v-col>
+      <v-col class="d-flex px-2 align-center" cols="2">
+        <div v-if="mutable_filters['harv_stat'].length>0" class="x-box">
+          <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('harv_stat')"/>&nbsp;
+        </div>
+        <v-select :items="harv_stat" v-model="mutable_filters['harv_stat']" @change="updateFilters('harv_stat')"
+                  multiple label="Status(es)" item-text="opt" item-value="id"
+        ></v-select>
+      </v-col>
     </v-row>
     <div v-if='is_admin || is_manager'>
-      <v-row class="status-message" v-if="success || failure">
-        <span v-if="success" class="good" role="alert" v-text="success"></span>
-        <span v-if="failure" class="fail" role="alert" v-text="failure"></span>
-      </v-row>
       <v-row class="d-flex pa-1 align-center" no-gutters>
-        <v-col class="d-flex px-2" cols="4" sm="2">
-          <v-select :items='bulk_actions' v-model='bulkAction' @change="processBulk()"
-                    item-text="action" item-value="status" label="Bulk Actions"
+        <v-col v-if='is_admin || is_manager' class="d-flex px-2" cols="3">
+          <v-select :items='bulk_actions' v-model='bulkAction' @change="processBulk()" label="Bulk Actions"
                     :disabled='selectedRows.length==0'></v-select>
         </v-col>
-        <v-col class="d-flex px-4 align-center" cols="4">
+        <v-col v-if='is_admin || is_manager' class="d-flex px-4 align-center" cols="3">
           <span v-if="selectedRows.length>0" class="form-fail">( Will affect {{ selectedRows.length }} rows )</span>
           <span v-else>&nbsp;</span>
         </v-col>
-        <v-col class="d-flex px-2 align-center" cols="2">
-          <div v-if="mutable_filters['source']!=null && mutable_filters['source']!=''" class="x-box">
-            <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('source')"/>&nbsp;
-          </div>
-          <v-select :items="source" v-model="mutable_filters['source']" @change="updateFilters('source')"
-                    label="Harvested For"
-          ></v-select>
-        </v-col>
-        <v-col v-if="mutable_options['codes'].length>0" class="d-flex px-2 align-center" cols="2">
-          <div v-if="mutable_filters['codes'].length>0" class="x-box">
-            <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
-          </div>
-          <v-select :items="mutable_options['codes']" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
-                    label="Error Code">
-            <template v-slot:prepend-item>
-              <v-list-item @click="filterAll('codes')">
-                 <span v-if="allSelected.codes">Clear Selections</span>
-                 <span v-else>Enable All</span>
-              </v-list-item>
-              <v-divider class="mt-1"></v-divider>
-            </template>
-            <template v-slot:selection="{ item, index }">
-              <span v-if="index == 0 && allSelected.codes">All Error Codes</span>
-              <span v-else-if="index < 2 && !allSelected.codes">{{ item }}</span>
-              <span v-else-if="index === 2 && !allSelected.codes" class="text-grey text-caption align-self-center">
-                &nbsp; +{{ mutable_filters['codes'].length-2 }} more
-              </span>
-              <span v-if="index <= 1 && index < mutable_filters['codes'].length-1 && !allSelected.codes">, </span>
-            </template>
-          </v-select>
-        </v-col>
       </v-row>
-      <v-data-table v-model="selectedRows" :headers="headers" :items="mutable_harvests" :loading="loading" show-select
-                    item-key="id" :options="mutable_dt_options" @update:options="updateOptions" :footer-props="footer_props"
-                    :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey">
-        <template v-slot:item.prov_name="{ item }">
-          <span v-if="item.prov_inst_id==1">
-            <v-icon title="Consortium Provider">mdi-account-multiple</v-icon>&nbsp;
-          </span>
-          {{ item.prov_name }}
-        </template>
-        <template v-slot:item.error_code="{ item }">
-          <span v-if="item.error_code==null && item.rawfile!=null && (item.status=='Success' || item.status=='Harvested')">
-            <v-icon title="Download Raw JSON Data" @click="goURL('/harvests/'+item.id+'/raw')">mdi-download</v-icon>
-          </span>
-          <span v-else> {{ item.error_code }}</span>
-        </template>
-        <template v-slot:item.data-table-expand="{ item, isExpanded, expand }">
-          <v-icon title="Error Details" @click="expand(true)" v-if="item.error_code>0 && !isExpanded" color="#F29727">
-            mdi-alert-outline
-          </v-icon>
-          <v-icon title="Close" @click="expand(false)" v-if="item.error_code>0 && isExpanded">mdi-close</v-icon>
-        </template>
-        <template v-slot:expanded-item="{ headers, item }">
-          <td v-if="item.failed.length>0" :colspan="headers.length">
-            <v-row class="d-flex py-2 justify-center" no-gutters>
-              <strong>Failed Harvest Attempts (Harvest ID: {{ item.id }})</strong>&nbsp; &nbsp;
-              <span>
-                <v-icon v-if="item.rawfile!=null" title="Download Last JSON Error Message"
-                        @click="goURL('/harvests/'+item.id+'/raw')">mdi-code-json</v-icon>
-                &nbsp; &nbsp;
-                <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)">mdi-barley</v-icon>
-              </span>
-            </v-row>
-            <v-row class="d-flex pa-1 align-center" no-gutters>
-              <v-col class="d-flex px-2" cols="2"><strong>Attempted</strong></v-col>
-              <v-col class="d-flex px-2" cols="8"><strong>Message</strong></v-col>
-              <v-col class="d-flex px-2" cols="1"><strong>Help</strong></v-col>
-              <v-col class="d-flex px-2" cols="1"><strong>Error</strong></v-col>
-            </v-row>
-            <v-row class="d-flex py-1 align-center" no-gutters><hr width="100%"></v-row>
-            <div v-for="attempt in item.failed" :key="item.id" class="report-field">
-              <v-row class="d-flex ma-0" no-gutters>
-                <v-col class="d-flex px-2" cols="2">{{ attempt.ts }}</v-col>
-                <v-col class="d-flex px-2" cols="8">
-                  {{ attempt.message }}
-                </v-col>
-                <v-col class="d-flex px-2" cols="1">
-                  <span v-if="!attempt.help_url || attempt.help_url.trim().length === 0">&nbsp;</span>
-                  <span v-else>
-                    <v-icon title="Provider Error Help" @click="goURL(attempt.help_url)">mdi-help-box-outline</v-icon>
-                  </span>
-                </v-col>
-                <v-col class="d-flex px-2" cols="1">
-                  {{ attempt.code }}
-                  <span v-if="attempt.code>=1000 && attempt.code<9000">
-                    <v-icon title="COUNTER Error Details" @click="goCounter()">mdi-open-in-new</v-icon>
-                  </span>
-                </v-col>
-              </v-row>
-              <v-row v-if="attempt.detail.length>0" class="d-flex ma-0" no-gutters>
-                <v-col class="d-flex" cols="2">&nbsp;</v-col>
-                <v-col class="d-flex" cols="8">{{ attempt.detail }}</v-col>
-                <v-col class="d-flex" cols="2">&nbsp;</v-col>
-              </v-row>
-            </div>
-          </td>
-        </template>
-      </v-data-table>
+      <v-row v-if='(success || failure)' class="status-message" no-gutters>
+        <span v-if="success" class="good" role="alert" v-text="success"></span>
+        <span v-if="failure" class="fail" role="alert" v-text="failure"></span>
+      </v-row>
     </div>
-    <div v-else>
-      <v-data-table :headers="headers" :items="mutable_harvests" :loading="loading" item-key="id"
-                    :options="mutable_dt_options" @update:options="updateOptions" :footer-props="footer_props">
-        <template v-slot:item.prov_name="{ item }">
-          <span v-if="item.prov_inst_id==1">
-            <v-icon title="Consortium Provider">mdi-account-multiple</v-icon>&nbsp;
-          </span>
-          {{ item.prov_name }}
-        </template>
-        <template v-slot:item.updated="{ item }">
-          {{ item.updated.substr(0,10) }}
-        </template>
-      </v-data-table>
-    </div>
+    <v-data-table v-if='is_admin || is_manager' v-model="selectedRows" :headers="headers" :items="mutable_harvests"
+                  :loading="loading" show-select item-key="id" :options="mutable_dt_options" @update:options="updateOptions"
+                  :footer-props="footer_props" :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey">
+      <template v-slot:item.prov_name="{ item }">
+        <span v-if="item.prov_inst_id==1">
+          <v-icon title="Consortium Provider">mdi-account-multiple</v-icon>&nbsp;
+        </span>
+        {{ item.prov_name }}
+      </template>
+      <template v-slot:item.error_code="{ item }">
+        <span v-if="item.error_code==null && item.rawfile!=null && (item.status=='Success' || item.status=='Harvested')">
+          <v-icon title="Download Raw JSON Data" @click="goURL('/harvests/'+item.id+'/raw')">mdi-download</v-icon>
+        </span>
+        <span v-else> {{ item.error_code }}</span>
+      </template>
+      <template v-slot:item.data-table-expand="{ item, isExpanded, expand }">
+        <v-icon title="Error Details" @click="expand(true)" v-if="item.error_code>0 && !isExpanded" color="#F29727">
+          mdi-alert-outline
+        </v-icon>
+        <v-icon title="Close" @click="expand(false)" v-if="item.error_code>0 && isExpanded">mdi-close</v-icon>
+      </template>
+      <template v-slot:expanded-item="{ headers, item }">
+        <td v-if="item.failed.length>0" :colspan="headers.length">
+          <v-row class="d-flex py-2 justify-center" no-gutters>
+            <strong>Failed Harvest Attempts (Harvest ID: {{ item.id }})</strong>&nbsp; &nbsp;
+            <span>
+              <v-icon v-if="item.rawfile!=null" title="Download Last JSON Error Message"
+                      @click="goURL('/harvests/'+item.id+'/raw')">mdi-code-json</v-icon>
+              &nbsp; &nbsp;
+              <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)">mdi-barley</v-icon>
+            </span>
+          </v-row>
+          <v-row class="d-flex pa-1 align-center" no-gutters>
+            <v-col class="d-flex px-2" cols="2"><strong>Attempted</strong></v-col>
+            <v-col class="d-flex px-2" cols="8"><strong>Message</strong></v-col>
+            <v-col class="d-flex px-2" cols="1"><strong>Help</strong></v-col>
+            <v-col class="d-flex px-2" cols="1"><strong>Error</strong></v-col>
+          </v-row>
+          <v-row class="d-flex py-1 align-center" no-gutters><hr width="100%"></v-row>
+          <div v-for="attempt in item.failed" :key="item.id" class="report-field">
+            <v-row class="d-flex ma-0" no-gutters>
+              <v-col class="d-flex px-2" cols="2">{{ attempt.ts }}</v-col>
+              <v-col class="d-flex px-2" cols="8">
+                {{ attempt.message }}
+              </v-col>
+              <v-col class="d-flex px-2" cols="1">
+                <span v-if="!attempt.help_url || attempt.help_url.trim().length === 0">&nbsp;</span>
+                <span v-else>
+                  <v-icon title="Provider Error Help" @click="goURL(attempt.help_url)">mdi-help-box-outline</v-icon>
+                </span>
+              </v-col>
+              <v-col class="d-flex px-2" cols="1">
+                {{ attempt.code }}
+                <span v-if="attempt.code>=1000 && attempt.code<9000">
+                  <v-icon title="COUNTER Error Details" @click="goCounter()">mdi-open-in-new</v-icon>
+                </span>
+              </v-col>
+            </v-row>
+            <v-row v-if="attempt.detail.length>0" class="d-flex ma-0" no-gutters>
+              <v-col class="d-flex" cols="2">&nbsp;</v-col>
+              <v-col class="d-flex" cols="8">{{ attempt.detail }}</v-col>
+              <v-col class="d-flex" cols="2">&nbsp;</v-col>
+            </v-row>
+          </div>
+        </td>
+      </template>
+    </v-data-table>
+    <v-data-table v-else :headers="headers" :items="mutable_harvests" :loading="loading" item-key="id"
+                  :options="mutable_dt_options" @update:options="updateOptions" :footer-props="footer_props">
+      <template v-slot:item.prov_name="{ item }">
+        <span v-if="item.prov_inst_id==1">
+          <v-icon title="Consortium Provider">mdi-account-multiple</v-icon>&nbsp;
+        </span>
+        {{ item.prov_name }}
+      </template>
+      <template v-slot:item.updated="{ item }">
+        {{ item.updated.substr(0,10) }}
+      </template>
+    </v-data-table>
   </div>
 </template>
 
@@ -277,12 +282,12 @@
     data () {
       return {
         headers: [
-          { text: 'Last Update', value: 'updated' },
+          { text: 'Harvest ID', value: 'id', align: 'center'},
+          { text: 'Result Date', value: 'updated' },
           { text: 'Provider', value: 'prov_name' },
           { text: 'Institution', value: 'inst_name' },
           { text: 'Report', value: 'report_name', align: 'center' },
           { text: 'Usage Date', value: 'yearmon' },
-          { text: 'Attempts', value: 'attempts', align: 'center' },
           { text: 'Status', value: 'status' },
           { text: 'Error Code', value: 'error_code', align: 'center' },
           { text: '', value: 'data-table-expand' },
@@ -291,19 +296,17 @@
         mutable_harvests: this.harvests,
         mutable_filters: this.filters,
         inst_filter: null,
+        conso_switch: 0,
+        limit_prov_ids: [],
         mutable_dt_options: {},
         mutable_updated: [],
         expanded: [],
-        mutable_options: { 'providers': [], 'institutions': [], 'codes': [], 'harv_stat': [], 'reports': [] },
-        allSelected: {'providers': false, 'institutions': false, 'codes': false, 'harv_stat': false, 'groups': false},
-        source: ['Consortium', 'Institution'],
+        mutable_options: { 'providers': [], 'institutions': [], 'codes': [], 'reports': [], 'yymms': [] },
+        allSelected: {'providers':false, 'institutions':false, 'codes':false, 'groups':false, 'yymms':false},
         truncatedResult: false,
-        harv_stat: ['Active', 'Fail', 'Queued', 'Harvested', 'Stopped', 'Success'],
-        status_changeable: ['Harvested', 'Stopped', 'Fail', 'New', 'Queued', 'ReQueued'],
-        bulk_actions: [ { action:'Stop',    status:'Stopped'},
-                        { action:'Restart', status:'Queued'},
-                        { action:'Delete',  status:'Delete'}
-                      ],
+        yymms: [],
+        harv_stat: [ {id:'Success', opt:'Success'}, {id:'Fail', opt:'Failed'},  {id:'NoRetries', opt:'Out of Retries'} ],
+        bulk_actions: ['ReStart','Delete'],
         harv: {},
         selectedRows: [],
         minYM: '',
@@ -354,7 +357,7 @@
         },
         clearAllFilters() {
             Object.keys(this.mutable_filters).forEach( (key) =>  {
-              if (key == 'fromYM' || key == 'toYM' || key == 'updated' || key == 'source') {
+              if (key == 'fromYM' || key == 'toYM' || key == 'updated') {
                   this.mutable_filters[key] = '';
               } else {
                   this.mutable_filters[key] = [];
@@ -367,6 +370,8 @@
               if (typeof(this.allSelected[key]) != 'undefined') this.allSelected[key] = false;
             });
             this.inst_filter = null;
+            this.conso_switch = false;
+            this.limit_prov_ids = [];
             this.rangeKey += 1;           // force re-render of the date-range component
         },
         clearFilter(filter) {
@@ -374,7 +379,7 @@
                 this.mutable_filters['toYM'] = '';
                 this.mutable_filters['fromYM'] = '';
                 this.rangeKey += 1;           // force re-render of the date-range component
-            } else if (filter == 'updated' || filter == 'source') {
+            } else if (filter == 'updated') {
                 this.mutable_filters[filter] = '';
             } else {
                 this.mutable_filters[filter] = [];
@@ -387,6 +392,24 @@
             this.$store.dispatch('updateAllFilters',this.mutable_filters);
             this.selectedRows = [];
         },
+        // Applies limit-to consortium switch by updating/managing the array of providers to limit to
+        updateConsoOnly() {
+            // If no filters active, just apply the conso_only
+            if ( this.mutable_filters['providers'].length==0 ) {
+              this.limit_prov_ids = (this.conso_switch) ? this.providers.filter(p => p.inst_id==1).map(p=>p.id) : [];
+            } else {
+              this.limit_prov_ids = (this.conso_switch)
+                  ? this.providers.filter(p => p.inst_id==1 && this.mutable_filters['providers'].includes(p.id)).map(p=>p.id)
+                  : [];
+              if (this.limit_prov_ids.length>0) {
+                this.mutable_options['providers'] = this.providers.filter(p => this.limit_prov_ids.includes(p.id));
+              } else if (this.mutable_filters['providers'].length > 0) {
+                this.mutable_options['providers'] = this.providers.filter(p => this.mutable_filters['providers'].includes(p.id));
+              } else {
+                this.mutable_options['providers'] = [ ...this.providers];
+              }
+            }
+        },
         // filt holds the filter options to be left alone when the JSON returns options
         updateLogRecords(filt) {
             this.success = "";
@@ -394,17 +417,30 @@
             this.loading = true;
             if (this.filter_by_toYM != null) this.mutable_filters['toYM'] = this.filter_by_toYM;
             if (this.filter_by_fromYM != null) this.mutable_filters['fromYM'] = this.filter_by_fromYM;
-            let _filters = JSON.stringify(this.mutable_filters);
+            let filters_copy = {...this.mutable_filters};
+            if (this.conso_switch) {
+              filters_copy.providers = [...this.limit_prov_ids];
+            }
+            let _filters = JSON.stringify(filters_copy);
             axios.get("/harvests?json=1&filters="+_filters)
                  .then((response) => {
                      this.mutable_harvests = response.data.harvests;
                      this.mutable_updated = response.data.updated;
                      this.truncatedResult = response.data.truncated;
                      this.mutable_options['codes'] = response.data.code_opts;
-                     this.mutable_options['harv_stat'] = response.data.stat_opts;
-                     this.mutable_options['reports'] = this.reports.filter( r => response.data.rept_opts.includes(r.id));
-                     this.mutable_options['providers'] = this.providers.filter( p => response.data.prov_opts.includes(p.id));
-                     this.mutable_options['institutions'] = this.institutions.filter( i => response.data.inst_opts.includes(i.id));
+                     this.mutable_options['reports'] = (response.data.rept_opts.length > 0)
+                                            ? this.reports.filter( r => response.data.rept_opts.includes(r.id) )
+                                            : [...this.reports];
+                     this.mutable_options['institutions'] = (response.data.inst_opts.length > 0 && !this.allSelected.institutions)
+                                            ? this.institutions.filter( i => response.data.inst_opts.includes(i.id) )
+                                            : [...this.institutions];
+                     this.mutable_options['providers'] = (response.data.prov_opts.length > 0 && !this.allSelected.providers)
+                                                      ? this.providers.filter( p => response.data.prov_opts.includes(p.id))
+                                                      : [...this.providers];
+                     this.mutable_options['yymms'] = (response.data.yymms.length > 0 && !this.allSelected.yymms) ?
+                                                     [...response.data.yymms] : [...this.yymms];
+                     // Make sure *something* is in the yymms array
+                     if (this.mutable_options['yymms'].length > this.yymms.length) this.yymms = [...this.mutable_options['yymms']];
                      this.update_button = "Refresh Records";
                      this.loading = false;
                      this.dtKey++;
@@ -424,22 +460,15 @@
             this.success = "";
             this.failure = "";
             let msg = "";
-            if (this.bulkAction != 'Delete') {
-                msg = "Bulk processing will proceed through each requested harvest sequentially. Any selected";
-                msg +=  " harvest(s) with a current status of 'Success' or 'Pending' will not be changed.";
-                msg += "<br><br>";
-            }
+            msg = "Bulk processing will proceed through each requested harvest sequentially.";
+            msg += "<br><br>";
             if (this.bulkAction == 'Restart') {
-                msg += "Updating the status for the selected harvests will reset the attempts counters to zero and";
-                msg += " add immediately add the harvests to the processing queue.";
-            } else if (this.bulkAction == 'Stop') {
-                msg += "Changing the status for the selected harvests will leave the attempts counter intact, and";
-                msg += " will prevent future attempts for these harvests. Any currently queued attempts will be";
-                msg += " cancelled.";
+                msg += "Restarting the selected harvests will reset the attempts counters to zero and";
+                msg += " immediately add the harvests to the processing queue.";
             } else if (this.bulkAction == 'Delete') {
-                msg += "Deleting the selected harvest records is not reversible! Active harvests cannot be deleted, and no";
-                msg += " harvested data will be removed or changed. <br><br><strong>NOTE:</strong> all failure/warning records";
-                msg += " connected to this harvest will also be deleted.";
+                msg += "Deleting the selected harvest records is not reversible!";
+                msg += "<br><br><strong>NOTE:<br /><font color='Red'>The stored data for the selected harvests and all related";
+                msg += " failure/warning records will also be removed!</font></strong>.";
             }
             Swal.fire({
               title: 'Are you sure?',
@@ -468,25 +497,22 @@
                     }
                   })
                   .catch({});
+                // Restarting will need their row removed from the datatable also... they will move to the Queued component
                 } else {
                     this.selectedRows.forEach(harvest => {
-                      // Allow change to Active
-                      if (this.status_changeable.includes(harvest.status) || harvest.status == 'Active') {
-                        axios.post('/update-harvest-status', {
-                                   id: harvest.id,
-                                   status: this.bulkAction
-                        })
-                        .then( (response) => {
-                          if (response.data.result) {
-                            var harvIdx = this.mutable_harvests.findIndex(h=>h.id===harvest.id);
-                            this.mutable_harvests[harvIdx].status = response.data.status;
-                          } else {
-                            this.failure = response.data.msg;
-                            return false;
-                          }
-                        })
-                        .catch(error => {});
-                      }
+                      axios.post('/update-harvest-status', {
+                                 id: harvest.id,
+                                 status: this.bulkAction
+                      })
+                      .then( (response) => {
+                        if (response.data.result) {
+                          this.$emit('restarted-harvest');
+                          this.mutable_harvests.splice(this.mutable_harvests.findIndex(h=>h.id===harvest.id),1);
+                        } else {
+                          this.failure = response.data.msg;
+                          return false;
+                        }
+                      }).catch(error => {});
                     });
                     if (this.failure == '') this.success = "Selected harvests successfully updated.";
                 }
@@ -535,7 +561,7 @@
             if (filt == "institutions" || filt == "groups") this.inst_filter = null;
           // Turned an all-options filter ON
           } else {
-            if (filt == 'codes' || filt == 'harv_stat') {
+            if (filt == 'codes' || filt == 'yymms') {
                 this.mutable_filters[filt] = [...this[filt]];
             } else {
                 this.mutable_filters[filt] = this[filt].map(o => o.id);
@@ -568,7 +594,7 @@
     mounted() {
       // Update any null/empty filters w/ store-values
       Object.keys(this.all_filters).forEach( (key) =>  {
-        if (key == 'fromYM' || key == 'toYM' || key == 'updated' || key == 'source') {
+        if (key == 'fromYM' || key == 'toYM' || key == 'updated') {
             if (this.mutable_filters[key] == null || this.mutable_filters[key] == "")
                 this.mutable_filters[key] = this.all_filters[key];
         } else {
