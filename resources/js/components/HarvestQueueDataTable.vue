@@ -18,7 +18,7 @@
             <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('providers')"/>&nbsp;
         </div>
         <v-autocomplete :items="mutable_options['providers']" v-model="mutable_filters['providers']"
-                        @change="updateFilters('providers')" multiple label="Provider(s)" item-text="name" item-value="id">
+                        @change="updateFilters('providers')" multiple label="Platform(s)" item-text="name" item-value="id">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('providers')">
                <span v-if="allSelected.providers">Clear Selections</span>
@@ -96,7 +96,7 @@
             <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('yymms')"/>&nbsp;
         </div>
         <v-autocomplete :items="mutable_options['yymms']" v-model="mutable_filters['yymms']"
-                        @change="updateFilters('yymms')" multiple label="Year-Month(s)" item-text="name" item-value="id">
+                        @change="updateFilters('yymms')" multiple label="Usage Date(s)" item-text="name" item-value="id">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('yymms')">
                <span v-if="allSelected.yymms">Clear Selections</span>
@@ -123,8 +123,8 @@
         <span v-if="selectedRows.length>0" class="form-fail">( Will affect {{ selectedRows.length }} rows )</span>
         <span v-else>&nbsp;</span>
       </v-col>
-      <v-col v-else class="d-flex" cols="6">&nbsp;</v-col>
-      <v-col class="d-flex" cols="2">&nbsp;</v-col>
+      <v-col v-if='is_admin || is_manager' class="d-flex" cols="2">&nbsp;</v-col>
+      <v-col v-else class="d-flex" cols="8">&nbsp;</v-col>
       <v-col class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
@@ -227,7 +227,7 @@
                     {id:'Waiting', opt:'Process Queue'}, {id:'Processing', opt:'Processing'} ],
         mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
         allSelected: {'providers':false, 'institutions':false, 'groups':false, 'codes':false, 'statuses':false, 'yymms':false},
-        bulk_actions: [ 'Pause', 'Kill', 'Resume'],
+        bulk_actions: ['Pause', 'Restart', 'Kill'],
         dtKey: 1,
         bulkAction: '',
         success: '',
@@ -263,7 +263,7 @@
                                             ? this.statuses.filter( s => response.data.statuses.includes(s.id) )
                                             : [...this.statuses];
                      this.mutable_options['codes'] = (response.data.codes.length > 0) ? [...response.data.codes] : [];
-                     this.mutable_options['yymms'] = (response.data.yymms.length > 0) ? [...response.data.yymms] : [];
+                     this.mutable_options['yymms'] = (response.data.yymms.length > 0) ? [...response.data.yymms] : [...this.yymms];
                      // Make sure *something* is in the yymms array
                      if (this.mutable_options['yymms'].length > this.yymms.length) this.yymms = [...this.mutable_options['yymms']];
                      this.loading = false;
@@ -276,12 +276,7 @@
             // If no filters active, just apply the conso_only
             if ( this.mutable_filters['providers'].length==0 ) {
               this.limit_prov_ids = (this.conso_switch) ? this.providers.filter(p => p.inst_id==1).map(p=>p.id) : [];
-              // this.limit_prov_ids = (this.conso_switch) ? this.providers.filter(p => p.inst_id==1).map(p=>p.id)
-              //                                           : this.providers.map(p => p.id);
             } else {
-              // this.limit_prov_ids = (this.conso_switch)
-              //     ? this.providers.filter(p => p.inst_id==1 && this.mutable_filters['providers'].includes(p.id)).map(p=>p.id)
-              //     : this.providers.filter(p => this.mutable_filters['providers'].includes(p.id)).map(p=>p.id);
               this.limit_prov_ids = (this.conso_switch)
                   ? this.providers.filter(p => p.inst_id==1 && this.mutable_filters['providers'].includes(p.id)).map(p=>p.id)
                   : [];
@@ -381,7 +376,7 @@
             msg = "Bulk processing will proceed through each requested harvest sequentially.";
             if (this.bulkAction == 'Pause') {
                 msg += "<br>Paused Harvests will remain in the harvesting queue, but will be ignored while Paused.";
-            } else if (this.bulkAction == 'Resume') {
+            } else if (this.bulkAction == 'Restart') {
                 msg += "<br>Only Paused Harvests will restarted, any other selected harvests will be ignored.";
             } else if (this.bulkAction == 'Kill') {
                 msg += "Deleting the selected harvest records is not reversible, and harvested data will not be affected.";
