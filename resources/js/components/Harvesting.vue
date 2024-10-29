@@ -36,7 +36,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestqueue-data-table :institutions="institutions" :groups="groups" :providers="providers" :reports="reports"
-                                   :codes="codes" :filters="job_filters"
+                                   :codes="codes" :filters="job_filters" :key="queueKey"
           ></harvestqueue-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -47,7 +47,8 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestlog-data-table :harvests="mutable_harvests" :institutions="institutions" :groups="groups" :providers="providers"
-                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="codes" :key="harvKey"
+                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="codes" :key="logKey"
+                                 @restarted-harvest="restartedHarvest"
           ></harvestlog-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -81,7 +82,8 @@
             mutable_bounds: [...this.bounds],
             job_filters: { 'providers': [], 'institutions': [], 'groups':[], 'reports':[], 'yymms': [], 'statuses':[], 'codes':[],
                            'created': null },
-            harvKey: 1,
+            logKey: 1,
+            queueKey: 1,
         }
     },
     methods: {
@@ -94,7 +96,7 @@
             updated += 1;
           }
         });
-        if (updated > 0) this.harvKey += 1;
+        if (updated > 0) this.logKey += 1;
       },
       addHarvests ({ harvests, bounds }) {
         var added=0;
@@ -104,9 +106,12 @@
         });
         if (added > 0) {
           this.mutable_bounds = [...bounds];
-          this.harvKey += 1;
+          this.logKey += 1;
         }
       },
+      restartedHarvest () { // Notify HarvestQueue component of restarted harvest
+        this.queueKey += 1;
+      }
     },
     mounted() {
         this.harvest_provs = this.providers.filter(p => p.sushi_enabled);
