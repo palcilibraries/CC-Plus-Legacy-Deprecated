@@ -25,7 +25,7 @@ class CreateHarvestLogsTable extends Migration
             $table->string('yearmon', 7);
             $table->string('source', 1)->nullable();    // source = "C" for consortium, "I" for institution
             $table->unsignedInteger('attempts')->default(0);
-            $table->unsignedInteger('error_id')->nullable();
+            $table->unsignedInteger('error_id')->default(0);
             $table->string('rawfile')->nullable();
             $table->timestamps();
 
