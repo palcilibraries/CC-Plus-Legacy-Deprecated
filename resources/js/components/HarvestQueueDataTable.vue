@@ -186,6 +186,10 @@
       <template v-slot:item.status="{ item }">
         {{ item.dStatus }}
       </template>
+      <template v-slot:item.error_id="{ item }">
+        <span v-if="item.error_id>0">{{ item.error_id }}</span>
+        <span v-else>&nbsp;</span>
+      </template>
     </v-data-table>
   </div>
 </template>
@@ -227,7 +231,7 @@
                     {id:'Waiting', opt:'Process Queue'}, {id:'Processing', opt:'Processing'} ],
         mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
         allSelected: {'providers':false, 'institutions':false, 'groups':false, 'codes':false, 'statuses':false, 'yymms':false},
-        bulk_actions: ['Pause', 'Restart', 'Kill'],
+        bulk_actions: ['Pause', 'ReStart', 'Kill'],
         dtKey: 1,
         bulkAction: '',
         success: '',
@@ -241,9 +245,14 @@
             this.success = "";
             this.failure = "";
             this.loading = true;
-            let filters_copy = {...this.mutable_filters};
+            let filters_copy = Object.assign( {}, this.mutable_filters);
             if (this.conso_switch) {
               filters_copy.providers = [...this.limit_prov_ids];
+            }
+            // replace 'No Error' string as a "code" with null for the purpose of reloading the records
+            let  _cidx = filters_copy.codes.findIndex(c => c == 'No Error');
+            if ( _cidx >= 0 ) {
+              filters_copy.codes.splice( _cidx, 1, 0 );
             }
             let _filters = JSON.stringify(filters_copy);
             axios.get("/harvest-queue?filters="+_filters)
@@ -270,6 +279,11 @@
                      this.dtKey++;
                  })
                  .catch(err => console.log(err));
+             _cidx = this.mutable_filters.codes.findIndex(c => c == 0);
+             if ( _cidx >= 0 ) {
+               this.mutable_filters.codes.splice(_cidx, 1);
+               this.mutable_filters.codes.unshift('No Error');
+             }
         },
         // Applies limit-to consortium switch by updating/managing the array of providers to limit to
         updateConsoOnly(reload) {
@@ -376,7 +390,7 @@
             msg = "Bulk processing will proceed through each requested harvest sequentially.";
             if (this.bulkAction == 'Pause') {
                 msg += "<br>Paused Harvests will remain in the harvesting queue, but will be ignored while Paused.";
-            } else if (this.bulkAction == 'Restart') {
+            } else if (this.bulkAction == 'ReStart') {
                 msg += "<br>Only Paused Harvests will restarted, any other selected harvests will be ignored.";
             } else if (this.bulkAction == 'Kill') {
                 msg += "Deleting the selected harvest records is not reversible, and harvested data will not be affected.";
