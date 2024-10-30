@@ -129,7 +129,7 @@
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
         </div>
-        <v-select :items="mutable_options['codes']" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
+        <v-select :items="codes" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
                   label="Error Code">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('codes')">
@@ -229,7 +229,7 @@
         statuses: [ {id:'Queued', opt:'Harvest Queue'}, {id:'Harvesting', opt:'Harvesting'},
                     {id:'Pending', opt:'Queued by Vendor'}, {id:'Paused', opt:'Paused'}, {id:'ReQueued', opt:'ReQueued'},
                     {id:'Waiting', opt:'Process Queue'}, {id:'Processing', opt:'Processing'} ],
-        mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
+        mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'statuses':[], 'reports':[], 'yymms':[] },
         allSelected: {'providers':false, 'institutions':false, 'groups':false, 'codes':false, 'statuses':false, 'yymms':false},
         bulk_actions: ['Pause', 'ReStart', 'Kill'],
         dtKey: 1,
@@ -271,7 +271,6 @@
                      this.mutable_options['statuses'] = (response.data.statuses.length > 0)
                                             ? this.statuses.filter( s => response.data.statuses.includes(s.id) )
                                             : [...this.statuses];
-                     this.mutable_options['codes'] = (response.data.codes.length > 0) ? [...response.data.codes] : [];
                      this.mutable_options['yymms'] = (response.data.yymms.length > 0) ? [...response.data.yymms] : [...this.yymms];
                      // Make sure *something* is in the yymms array
                      if (this.mutable_options['yymms'].length > this.yymms.length) this.yymms = [...this.mutable_options['yymms']];
