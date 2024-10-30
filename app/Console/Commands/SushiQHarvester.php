@@ -326,6 +326,9 @@ class SushiQHarvester extends Command
                         $error_msg .= substr(preg_replace('/(.*)(https?:\/\/.*)$/', '$1', $sushi->message), 0, 60);
 
                        // Get/Create entry from the sushi_errors table
+                        if ($sushi->error_code == 0) {  // Reserve 0 for "No Error"
+                            $sushi->error_code = 9000;
+                        }
                         $error = CcplusError::firstOrCreate(
                              ['id' => $sushi->error_code],
                              ['id' => $sushi->error_code, 'message' => $error_msg, 'severity' => $severity_id]
