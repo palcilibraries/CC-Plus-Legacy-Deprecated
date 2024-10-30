@@ -36,7 +36,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestqueue-data-table :institutions="institutions" :groups="groups" :providers="providers" :reports="reports"
-                                   :codes="codes" :filters="job_filters" :key="queueKey"
+                                   :codes="job_codes" :filters="job_filters" :key="queueKey"
           ></harvestqueue-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -82,6 +82,7 @@
             mutable_bounds: [...this.bounds],
             job_filters: { 'providers': [], 'institutions': [], 'groups':[], 'reports':[], 'yymms': [], 'statuses':[], 'codes':[],
                            'created': null },
+            job_codes: [...this.codes],
             logKey: 1,
             queueKey: 1,
         }
@@ -116,6 +117,7 @@
     mounted() {
         this.harvest_provs = this.providers.filter(p => p.sushi_enabled);
         this.harvest_insts = [ ...this.institutions];
+        this.job_codes.unshift('No Error');
 
         // Subscribe to store updates
         this.$store.subscribe((mutation, state) => { localStorage.setItem('store', JSON.stringify(state)); });
