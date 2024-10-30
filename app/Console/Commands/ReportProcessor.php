@@ -197,7 +197,7 @@ class ReportProcessor extends Command
                // Successfully processed the report - clear out any existing "failed" records and update the harvest
                 $deleted = FailedHarvest::where('harvest_id', $harvest->id)->delete();
                 $rawfile = $report->name . '_' . $begin . '_' . $end . ".json";
-                $harvest->error_id = null;
+                $harvest->error_id = 0;
                 $harvest->status = 'Success';
                 $harvest->rawfile = $rawfile;
 

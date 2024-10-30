@@ -109,7 +109,7 @@ class SushiQHarvester extends Command
 
                 // If conso is not active
                 if (!$con->is_active) {
-                    // Set all related harvests to "Stopped"
+                    // Set all related harvests to "Fail"
                     $harvest_ids = $jobs->pluck('harvest_id')->toArray();
                     $res = HarvestLog::whereIn('id',$harvest_ids)->update(['status' => 'Fail']);
                     // Remove the jobs from the Queue
@@ -153,7 +153,7 @@ class SushiQHarvester extends Command
                     }
 
                    // Skip any harvest(s) related to a sushisetting that is not (or no longer) Active (the settings
-                   // may have been changed since the harvest was defined) - if found, set harvest status to Stopped.
+                   // may have been changed since the harvest was defined) - if found, set harvest status to Fail.
                     if ($keepJob) {
                         if ($job->harvest->sushiSetting->status != 'Enabled') {
                             $error = CcplusError::where('id',9050)->first();
@@ -173,7 +173,7 @@ class SushiQHarvester extends Command
                         $report = Report::find($job->harvest->report_id);
                         if (is_null($report)) {     // report gone? toss entry
                             $this->line($ts . " QueueHarvester: Unknown Report ID: " . $job->harvest->report_id .
-                                        ' , queue entry removed and harvest status set to Stopped.');
+                                        ' , queue entry removed and harvest status set to Fail.');
                             $job->harvest->status = 'Fail';
                             $job->harvest->save();
                             $keepJob = false;
@@ -206,7 +206,7 @@ class SushiQHarvester extends Command
                                                    'created_at' => $ts]);
                         } else {
                             $this->line($ts . " QueueHarvester: Provider: " . $setting->provider->name .
-                                              " is INACTIVE , queue entry removed and harvest status set to Stopped.");
+                                              " is INACTIVE , queue entry removed and harvest status set to Fail.");
                         }
                         $job->delete();
                         $job->harvest->error_id = 9060;
@@ -222,7 +222,7 @@ class SushiQHarvester extends Command
                                                    'created_at' => $ts]);
                         } else {
                             $this->line($ts . " QueueHarvester: Institution: " . $setting->institution->name .
-                                              " is INACTIVE , queue entry removed and harvest status set to Stopped.");
+                                              " is INACTIVE , queue entry removed and harvest status set to Fail.");
                         }
                         $job->delete();
                         $job->harvest->error_id = 9070;
@@ -350,7 +350,7 @@ class SushiQHarvester extends Command
                             $setting->last_harvest = $yearmon;
                             $setting->update();
                         }
-                        $job->harvest->error_id = null;
+                        $job->harvest->error_id = 0;
                         $job->harvest->attempts++;
                         $job->harvest->status = "Waiting";
 
@@ -416,7 +416,7 @@ class SushiQHarvester extends Command
             }      // foreach consortium with queued jobs
 
            // Get (another 100) Jobs from the Queue
-            $all_jobs = SushiQueueJob::orderBy('id', 'ASC')->take(100)->skip($skip_count)->get();
+            $all_jobs = SushiQueueJob::orderBy('id', 'ASC')->skip($skip_count)->take(100)->get();
 
         }  // continue while $all_jobs->count() > 0
         return 1;
