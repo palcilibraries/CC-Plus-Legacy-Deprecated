@@ -134,11 +134,11 @@
         <span class="fail" role="alert">Result Truncated To 500 Records</span>
       </v-col>
       <v-col v-else class="d-flex" cols="3">&nbsp;</v-col>
-      <v-col v-if="mutable_options['codes'].length>0" class="d-flex px-2 align-center" cols="2">
+      <v-col class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
         </div>
-        <v-select :items="mutable_options['codes']" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
+        <v-select :items="codes" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
                   label="Error Code">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('codes')">
@@ -305,8 +305,7 @@
         mutable_dt_options: {},
         mutable_updated: [],
         expanded: [],
-        ignore_codes: [1020,2010,9010,9020],
-        mutable_options: { 'providers': [], 'institutions': [], 'codes': [], 'reports': [], 'yymms': [] },
+        mutable_options: { 'providers': [], 'institutions': [], 'reports': [], 'yymms': [] },
         allSelected: {'providers':false, 'institutions':false, 'codes':false, 'groups':false, 'yymms':false},
         truncatedResult: false,
         yymms: [],
@@ -371,11 +370,7 @@
             this.$store.dispatch('updateAllFilters',this.mutable_filters);
             // Reset error code options to inbound property
             Object.keys(this.mutable_options).forEach( (key) => {
-              if ( key == 'codes') {
-                this.mutable_options['codes'] = this.codes.filter( ( c ) => !this.ignore_codes.includes( c ) );
-              } else {
-                this.mutable_options[key] = [...this[key]];
-              }
+              this.mutable_options[key] = [...this[key]];
               if (typeof(this.allSelected[key]) != 'undefined') this.allSelected[key] = false;
             });
             this.inst_filter = null;
@@ -394,11 +389,7 @@
                 this.mutable_filters[filter] = [];
                 if (filter=='institutions' || filter=='groups') this.inst_filter = null;
                 if ( Object.keys(this.mutable_options).includes(filter) ) {
-                  if ( filter == 'codes') {
-                    this.mutable_options['codes'] = this.codes.filter( ( c ) => !this.ignore_codes.includes( c ) );
-                  } else {
-                    this.mutable_options[filter] = [...this[filter]];
-                  }
+                  this.mutable_options[filter] = [...this[filter]];
                 }
             }
             if (typeof(this.allSelected[filter]) != 'undefined') this.allSelected[filter] = false;
@@ -434,13 +425,17 @@
             if (this.conso_switch) {
               filters_copy.providers = [...this.limit_prov_ids];
             }
+            // replace 'No Error' string as a "code" with null for the purpose of reloading the records
+            let  _cidx = filters_copy.codes.findIndex(c => c == 'No Error');
+            if ( _cidx >= 0 ) {
+              filters_copy.codes.splice( _cidx, 1, 0 );
+            }
             let _filters = JSON.stringify(filters_copy);
             axios.get("/harvests?json=1&filters="+_filters)
                  .then((response) => {
                      this.mutable_harvests = response.data.harvests;
                      this.mutable_updated = response.data.updated;
                      this.truncatedResult = response.data.truncated;
-                     this.mutable_options['codes'] = response.data.code_opts;
                      this.mutable_options['reports'] = (response.data.rept_opts.length > 0)
                                             ? this.reports.filter( r => response.data.rept_opts.includes(r.id) )
                                             : [...this.reports];
@@ -459,6 +454,11 @@
                      this.dtKey++;
                  })
                  .catch(err => console.log(err));
+                 _cidx = this.mutable_filters.codes.findIndex(c => c == 0);
+                 if ( _cidx >= 0 ) {
+                   this.mutable_filters.codes.splice(_cidx, 1);
+                   this.mutable_filters.codes.unshift('No Error');
+                 }
         },
         updateOptions(options) {
             if (Object.keys(this.mutable_dt_options).length === 0) return;
@@ -628,11 +628,7 @@
 
       // Set initial filter options
       Object.keys(this.mutable_options).forEach( (key) => {
-        if ( key == 'codes') {
-          this.mutable_options['codes'] = this.codes.filter( ( c ) => !this.ignore_codes.includes( c ) );
-        } else {
-          this.mutable_options[key] = [...this[key]];
-        }
+        this.mutable_options[key] = [...this[key]];
       });
       this.mutable_updated = ["Last 24 hours"];
 
