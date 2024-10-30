@@ -36,7 +36,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestqueue-data-table :institutions="institutions" :groups="groups" :providers="providers" :reports="reports"
-                                   :codes="job_codes" :filters="job_filters" :key="queueKey"
+                                   :codes="queue_codes" :filters="job_filters" :key="queueKey"
           ></harvestqueue-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -47,7 +47,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestlog-data-table :harvests="mutable_harvests" :institutions="institutions" :groups="groups" :providers="providers"
-                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="codes" :key="logKey"
+                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="log_codes" :key="logKey"
                                  @restarted-harvest="restartedHarvest"
           ></harvestlog-data-table>
         </v-expansion-panel-content>
@@ -67,7 +67,8 @@
             reports: { type:Array, default: () => [] },
             bounds: { type:Array, default: () => [] },
             filters: { type:Object, default: () => {} },
-            codes: { type:Array, default: () => [] },
+            queue_codes: { type:Array, default: () => [] },
+            log_codes: { type:Array, default: () => [] },
             presets: { type:Object, default: () => {} },
             conso: { type:String, default: '' },
            },
@@ -82,7 +83,6 @@
             mutable_bounds: [...this.bounds],
             job_filters: { 'providers': [], 'institutions': [], 'groups':[], 'reports':[], 'yymms': [], 'statuses':[], 'codes':[],
                            'created': null },
-            job_codes: [...this.codes],
             logKey: 1,
             queueKey: 1,
         }
@@ -117,7 +117,6 @@
     mounted() {
         this.harvest_provs = this.providers.filter(p => p.sushi_enabled);
         this.harvest_insts = [ ...this.institutions];
-        this.job_codes.unshift('No Error');
 
         // Subscribe to store updates
         this.$store.subscribe((mutation, state) => { localStorage.setItem('store', JSON.stringify(state)); });
