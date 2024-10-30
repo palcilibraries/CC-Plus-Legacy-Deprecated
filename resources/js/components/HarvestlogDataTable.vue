@@ -191,17 +191,17 @@
         </span>
         {{ item.prov_name }}
       </template>
-      <template v-slot:item.error_code="{ item }">
-        <span v-if="item.error_code==null && item.rawfile!=null && (item.status=='Success' || item.status=='Harvested')">
+      <template v-slot:item.error_id="{ item }">
+        <span v-if="item.error.id==0 && item.rawfile!=null && (item.status=='Success' || item.status=='Harvested')">
           <v-icon title="Download Raw JSON Data" @click="goURL('/harvests/'+item.id+'/raw')">mdi-download</v-icon>
         </span>
-        <span v-else> {{ item.error_code }}</span>
+        <span v-else> {{ item.error.id }}</span>
       </template>
       <template v-slot:item.data-table-expand="{ item, isExpanded, expand }">
-        <v-icon title="Error Details" @click="expand(true)" v-if="item.error_code>0 && !isExpanded" color="#F29727">
+        <v-icon title="Error Details" @click="expand(true)" v-if="item.error.id>0 && !isExpanded" color="#F29727">
           mdi-alert-outline
         </v-icon>
-        <v-icon title="Close" @click="expand(false)" v-if="item.error_code>0 && isExpanded">mdi-close</v-icon>
+        <v-icon title="Close" @click="expand(false)" v-if="item.error.id>0 && isExpanded">mdi-close</v-icon>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
         <td v-if="item.failed.length>0" :colspan="headers.length">
@@ -260,6 +260,10 @@
       <template v-slot:item.updated="{ item }">
         {{ item.updated.substr(0,10) }}
       </template>
+      <template v-slot:item.error_id="{ item }">
+        <span v-if="item.error.id>0">{{ item.error.id }}</span>
+        <span v-else>&nbsp;</span>
+      </template>
     </v-data-table>
   </div>
 </template>
@@ -289,7 +293,7 @@
           { text: 'Report', value: 'report_name', align: 'center' },
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Status', value: 'status' },
-          { text: 'Error Code', value: 'error_code', align: 'center' },
+          { text: 'Error Code', value: 'error.id', align: 'center' },
           { text: '', value: 'data-table-expand' },
         ],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
