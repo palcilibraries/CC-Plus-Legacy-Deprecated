@@ -151,7 +151,7 @@ class HarvestLogController extends Controller
            $bounds = $this->harvestBounds();
 
            // make a list of error codes - for now just return everthing that exists in failedHarvests
-           $codes = HarvestLog::whereNotNull('error_id')->distinct('error_id')->orderBy('error_id')->pluck('error_id')->toArray();
+           $codes = HarvestLog::where('error_id','>',0)->distinct('error_id')->orderBy('error_id')->pluck('error_id')->toArray();
 
            // Setup the initial page view
            return view('harvests.index', compact('harvests','institutions','groups','providers','reports','bounds','filters',
@@ -190,7 +190,7 @@ class HarvestLogController extends Controller
 
            // Limit status if an empty array is passed in
            if (count($filters["harv_stat"]) == 0) {
-               $filters["harv_stat"] = array('Success','Fail','Stopped');
+               $filters["harv_stat"] = array('Success','Fail');
 
            }
 
@@ -244,7 +244,7 @@ class HarvestLogController extends Controller
                ->get();
 
            // Make arrays for updating the filter options in the U/I
-           $codes = $harvest_data->whereNotNull('error_id')->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
+           $codes = $harvest_data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
            $rept_ids = $harvest_data->unique('report_id')->sortBy('report_id')->pluck('report_id')->toArray();
            $prov_ids = $harvest_data->unique('sushiSetting.provider')->sortBy('sushiSetting.provider.name')
                                     ->pluck('sushiSetting.prov_id')->toArray();
@@ -626,9 +626,7 @@ class HarvestLogController extends Controller
            return response()->json(['result' => false, 'msg' => 'Missing expected inputs!']);
        }
 
-       // The new status will be based on one of 2 possible values:
-       //   Queued: resets attempts to zero and requeues the harvest for immediate retrying
-       //   Stopped: Sets harvest to "Stopped", regardless of what it was before.
+       // Limit new status input to 2 possible values
        $new_status_allowed = array('Pause', 'ReStart');
        if (!in_array($input['status'], $new_status_allowed)) {
            return response()->json(['result' => false,
@@ -1059,9 +1057,11 @@ class HarvestLogController extends Controller
        $repts = $data->unique('report_id')->pluck('report_id')->toArray();
        $yymms = $data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
        $stats = $data->unique('status')->sortBy('status')->pluck('status')->toArray();
-       $codes = $data->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
-       if (count($codes) == 1 && is_null($codes[0])) {
-           $codes = [];
+       // Set up codes with a custom option prepended
+       $include_noerrors = $data->where('error_id',0)->first();
+       $codes = $data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
+       if ($include_noerrors) {
+           array_unshift($codes , 'No Error');
        }
 
        return response()->json(["result" => true, "jobs" => $harvests, "prov_ids" => $provs, "inst_ids" => $insts,
@@ -1119,11 +1119,11 @@ class HarvestLogController extends Controller
                     'prov_inst_id' => $harvest->sushiSetting->provider->inst_id,
                     'report_name' => $harvest->report->name,
                     'status' => $harvest->status, 'rawfile' => $harvest->rawfile,
-                    'error_code' => null, 'error' => []
+                    'error_id' => 0, 'error' => []
                    );
        $rec['updated'] = date("Y-m-d H:i", strtotime($harvest->updated_at));
        if ($harvest->lastError) {
-           $rec['error_code'] = $harvest->error_id;
+           $rec['error_id'] = $harvest->error_id;
            $rec['error'] = $harvest->lastError->toArray();
        }
        $rec['failed'] = [];
