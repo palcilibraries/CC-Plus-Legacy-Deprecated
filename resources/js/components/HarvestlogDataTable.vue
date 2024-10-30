@@ -305,6 +305,7 @@
         mutable_dt_options: {},
         mutable_updated: [],
         expanded: [],
+        ignore_codes: [1020,2010,9010,9020],
         mutable_options: { 'providers': [], 'institutions': [], 'codes': [], 'reports': [], 'yymms': [] },
         allSelected: {'providers':false, 'institutions':false, 'codes':false, 'groups':false, 'yymms':false},
         truncatedResult: false,
@@ -370,7 +371,11 @@
             this.$store.dispatch('updateAllFilters',this.mutable_filters);
             // Reset error code options to inbound property
             Object.keys(this.mutable_options).forEach( (key) => {
-              this.mutable_options[key] = [...this[key]];
+              if ( key == 'codes') {
+                this.mutable_options['codes'] = this.codes.filter( ( c ) => !this.ignore_codes.includes( c ) );
+              } else {
+                this.mutable_options[key] = [...this[key]];
+              }
               if (typeof(this.allSelected[key]) != 'undefined') this.allSelected[key] = false;
             });
             this.inst_filter = null;
@@ -389,7 +394,11 @@
                 this.mutable_filters[filter] = [];
                 if (filter=='institutions' || filter=='groups') this.inst_filter = null;
                 if ( Object.keys(this.mutable_options).includes(filter) ) {
-                  this.mutable_options[filter] = [...this[filter]];
+                  if ( filter == 'codes') {
+                    this.mutable_options['codes'] = this.codes.filter( ( c ) => !this.ignore_codes.includes( c ) );
+                  } else {
+                    this.mutable_options[filter] = [...this[filter]];
+                  }
                 }
             }
             if (typeof(this.allSelected[filter]) != 'undefined') this.allSelected[filter] = false;
@@ -619,7 +628,11 @@
 
       // Set initial filter options
       Object.keys(this.mutable_options).forEach( (key) => {
-        this.mutable_options[key] = [...this[key]];
+        if ( key == 'codes') {
+          this.mutable_options['codes'] = this.codes.filter( ( c ) => !this.ignore_codes.includes( c ) );
+        } else {
+          this.mutable_options[key] = [...this[key]];
+        }
       });
       this.mutable_updated = ["Last 24 hours"];
 
