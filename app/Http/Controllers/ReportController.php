@@ -971,7 +971,7 @@ class ReportController extends Controller
         }
         // If not exporting, return the records as JSON
         if ($runtype != 'export') {
-            if ($master_name == "DR") {
+            if ($master_name == "DR" && $format == 'Compact') {
                 return response()->json(['usage' => $records, 'db_options' => $db_options], 200);
             } else {
                 return response()->json(['usage' => $records], 200);
