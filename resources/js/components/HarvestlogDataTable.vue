@@ -191,9 +191,9 @@
         </span>
         {{ item.prov_name }}
       </template>
-      <template v-slot:item.error_id="{ item }">
-        <span v-if="item.error.id==0 && item.rawfile!=null && (item.status=='Success' || item.status=='Harvested')">
-          <v-icon title="Download Raw JSON Data" @click="goURL('/harvests/'+item.id+'/raw')">mdi-download</v-icon>
+      <template v-slot:item.error.id="{ item }">
+        <span v-if="item.rawfile!=null && (item.status=='Success' || item.error.id==0)">
+          <v-icon title="Download Raw JSON Data" @click="goURL('/harvests/'+item.id+'/raw')">mdi-code-json</v-icon>
         </span>
         <span v-else> {{ item.error.id }}</span>
       </template>
@@ -260,7 +260,7 @@
       <template v-slot:item.updated="{ item }">
         {{ item.updated.substr(0,10) }}
       </template>
-      <template v-slot:item.error_id="{ item }">
+      <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
         <span v-else>&nbsp;</span>
       </template>
