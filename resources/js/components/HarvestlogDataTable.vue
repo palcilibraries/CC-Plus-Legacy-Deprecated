@@ -27,7 +27,7 @@
             <v-divider class="mt-1"></v-divider>
           </template>
           <template v-slot:selection="{ item, index }">
-            <span v-if="index==0 && allSelected.providers">All Providers</span>
+            <span v-if="index==0 && allSelected.providers">All Platforms</span>
             <span v-else-if="index==0 && !allSelected.providers">{{ item.name }}</span>
             <span v-else-if="index===1 && !allSelected.providers" class="text-grey text-caption align-self-center">
               &nbsp; +{{ mutable_filters['providers'].length-1 }} more
@@ -187,21 +187,23 @@
                   :footer-props="footer_props" :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey">
       <template v-slot:item.prov_name="{ item }">
         <span v-if="item.prov_inst_id==1">
-          <v-icon title="Consortium Provider">mdi-account-multiple</v-icon>&nbsp;
+          <v-icon title="Consortium Platform">mdi-account-multiple</v-icon>&nbsp;
         </span>
         {{ item.prov_name }}
       </template>
-      <template v-slot:item.error.id="{ item }">
-        <span v-if="item.rawfile!=null && (item.status=='Success' || item.error.id==0)">
-          <v-icon title="Download Raw JSON Data" @click="goURL('/harvests/'+item.id+'/raw')">mdi-code-json</v-icon>
+      <template v-if="" v-slot:item.data-table-expand="{ item, isExpanded, expand }">
+        <span v-if="item.error.id>0 && !isExpanded">
+          {{ item.error.id }} <v-icon title="Error Details" @click="expand(true)" color="blue">mdi-dots-vertical</v-icon>
         </span>
-        <span v-else> {{ item.error.id }}</span>
+        <span v-if="item.error.id>0 && isExpanded">
+          <v-icon title="Close" @click="expand(false)">mdi-close</v-icon>
+        </span>
       </template>
-      <template v-slot:item.data-table-expand="{ item, isExpanded, expand }">
-        <v-icon title="Error Details" @click="expand(true)" v-if="item.error.id>0 && !isExpanded" color="#F29727">
-          mdi-alert-outline
-        </v-icon>
-        <v-icon title="Close" @click="expand(false)" v-if="item.error.id>0 && isExpanded">mdi-close</v-icon>
+      <template v-slot:item.id="{ item }">
+        <span v-if="item.rawfile!=null">
+          {<a :href="'/harvests/'+item.id+'/raw'">{{ item.id }}</a>}
+          <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)" color="blue">mdi-barley</v-icon>
+        </span>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
         <td v-if="item.failed.length>0" :colspan="headers.length">
@@ -230,7 +232,7 @@
               <v-col class="d-flex px-2" cols="1">
                 <span v-if="!attempt.help_url || attempt.help_url.trim().length === 0">&nbsp;</span>
                 <span v-else>
-                  <v-icon title="Provider Error Help" @click="goURL(attempt.help_url)">mdi-help-box-outline</v-icon>
+                  <v-icon title="Platform Error Help" @click="goURL(attempt.help_url)">mdi-help-box-outline</v-icon>
                 </span>
               </v-col>
               <v-col class="d-flex px-2" cols="1">
@@ -253,7 +255,7 @@
                   :options="mutable_dt_options" @update:options="updateOptions" :footer-props="footer_props">
       <template v-slot:item.prov_name="{ item }">
         <span v-if="item.prov_inst_id==1">
-          <v-icon title="Consortium Provider">mdi-account-multiple</v-icon>&nbsp;
+          <v-icon title="Consortium Platform">mdi-account-multiple</v-icon>&nbsp;
         </span>
         {{ item.prov_name }}
       </template>
@@ -286,15 +288,14 @@
     data () {
       return {
         headers: [
-          { text: 'Harvest ID', value: 'id', align: 'center'},
           { text: 'Result Date', value: 'updated' },
-          { text: 'Provider', value: 'prov_name' },
+          { text: 'Platform', value: 'prov_name' },
           { text: 'Institution', value: 'inst_name' },
           { text: 'Report', value: 'report_name', align: 'center' },
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Status', value: 'status' },
-          { text: 'Error Code', value: 'error.id', align: 'center' },
-          { text: '', value: 'data-table-expand' },
+          { text: 'Error Code', value: 'data-table-expand', align: 'center', width: '75px'},
+          { text: 'Harvest ID', value: 'id', align: 'center'},
         ],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
         mutable_harvests: this.harvests,
