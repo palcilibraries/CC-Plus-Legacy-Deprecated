@@ -138,7 +138,7 @@
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
         </div>
-        <v-select :items="codes" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
+        <v-select :items="mutable_options['codes']" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
                   label="Error Code">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('codes')">
@@ -295,7 +295,7 @@
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Status', value: 'status' },
           { text: 'Error Code', value: 'data-table-expand', align: 'center', width: '75px'},
-          { text: 'Harvest ID', value: 'id', align: 'center'},
+          { text: 'Harvest ID', value: 'id', align: 'center', width: '100px'},
         ],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
         mutable_harvests: this.harvests,
@@ -306,7 +306,7 @@
         mutable_dt_options: {},
         mutable_updated: [],
         expanded: [],
-        mutable_options: { 'providers': [], 'institutions': [], 'reports': [], 'yymms': [] },
+        mutable_options: { 'providers': [], 'institutions': [], 'codes': [], 'reports': [], 'yymms': [] },
         allSelected: {'providers':false, 'institutions':false, 'codes':false, 'groups':false, 'yymms':false},
         truncatedResult: false,
         yymms: [],
@@ -437,6 +437,7 @@
                      this.mutable_harvests = response.data.harvests;
                      this.mutable_updated = response.data.updated;
                      this.truncatedResult = response.data.truncated;
+                     this.mutable_options['codes'] = response.data.code_opts;
                      this.mutable_options['reports'] = (response.data.rept_opts.length > 0)
                                             ? this.reports.filter( r => response.data.rept_opts.includes(r.id) )
                                             : [...this.reports];
