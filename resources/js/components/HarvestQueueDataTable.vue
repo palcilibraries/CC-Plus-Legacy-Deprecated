@@ -129,7 +129,7 @@
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
         </div>
-        <v-select :items="codes" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
+        <v-select :items="mutable_options['codes']" v-model="mutable_filters['codes']" @change="updateFilters('codes')" multiple
                   label="Error Code">
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('codes')">
@@ -203,7 +203,6 @@
       groups: { type:Array, default: () => [] },
       providers: { type:Array, default: () => [] },
       reports: { type:Array, default: () => [] },
-      codes: { type:Array, default: () => {} },
       filters: { type:Object, default: () => {} },
     },
     data () {
@@ -225,11 +224,12 @@
         conso_switch: 0,
         limit_prov_ids: [],
         inst_filter: null,
+        codes: [],
         yymms: [],
         statuses: [ {id:'Queued', opt:'Harvest Queue'}, {id:'Harvesting', opt:'Harvesting'},
                     {id:'Pending', opt:'Queued by Vendor'}, {id:'Paused', opt:'Paused'}, {id:'ReQueued', opt:'ReQueued'},
                     {id:'Waiting', opt:'Process Queue'}, {id:'Processing', opt:'Processing'} ],
-        mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'statuses':[], 'reports':[], 'yymms':[] },
+        mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
         allSelected: {'providers':false, 'institutions':false, 'groups':false, 'codes':false, 'statuses':false, 'yymms':false},
         bulk_actions: ['Pause', 'ReStart', 'Kill'],
         dtKey: 1,
@@ -271,8 +271,10 @@
                      this.mutable_options['statuses'] = (response.data.statuses.length > 0)
                                             ? this.statuses.filter( s => response.data.statuses.includes(s.id) )
                                             : [...this.statuses];
+                     this.mutable_options['codes'] = (response.data.codes.length > 0) ? [...response.data.codes] : [...this.codes];
                      this.mutable_options['yymms'] = (response.data.yymms.length > 0) ? [...response.data.yymms] : [...this.yymms];
-                     // Make sure *something* is in the yymms array
+                     // Make sure the codes and yymms options hold as much as they can (for clear filters)
+                     if (this.mutable_options['codes'].length > this.codes.length) this.codes = [...this.mutable_options['codes']];
                      if (this.mutable_options['yymms'].length > this.yymms.length) this.yymms = [...this.mutable_options['yymms']];
                      this.loading = false;
                      this.dtKey++;
