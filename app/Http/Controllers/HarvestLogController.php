@@ -111,7 +111,8 @@ class HarvestLogController extends Controller
 
            // Get the job-count for the current consortium
            $con = Consortium::where("ccp_key", session("ccp_con_key"))->first();
-           $conso = ($con) ? $con->name : null;
+           // Only display consortium name for admins
+           $conso = ($con && $thisUser->hasRole('Admin')) ? $con->name : "";
 
            // Get IDs of all possible providers from the sushisettings table
            if ($show_all) {
@@ -248,7 +249,12 @@ class HarvestLogController extends Controller
                ->get();
 
            // Make arrays for updating the filter options in the U/I
+
            $codes = $harvest_data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
+           $includes_noError = $harvest_data->where('error_id',0)->first();
+           if ($includes_noError) {
+               array_unshift($codes, 'No Error');
+           }
            $rept_ids = $harvest_data->unique('report_id')->sortBy('report_id')->pluck('report_id')->toArray();
            $prov_ids = $harvest_data->unique('sushiSetting.provider')->sortBy('sushiSetting.provider.name')
                                     ->pluck('sushiSetting.prov_id')->toArray();
