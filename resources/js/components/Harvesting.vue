@@ -36,7 +36,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestqueue-data-table :institutions="institutions" :groups="groups" :providers="providers" :reports="reports"
-                                   :codes="queue_codes" :filters="job_filters" :key="queueKey"
+                                   :filters="job_filters" :key="queueKey"
           ></harvestqueue-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -47,7 +47,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <harvestlog-data-table :harvests="mutable_harvests" :institutions="institutions" :groups="groups" :providers="providers"
-                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="log_codes" :key="logKey"
+                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="codes" :key="logKey"
                                  @restarted-harvest="restartedHarvest"
           ></harvestlog-data-table>
         </v-expansion-panel-content>
@@ -67,8 +67,7 @@
             reports: { type:Array, default: () => [] },
             bounds: { type:Array, default: () => [] },
             filters: { type:Object, default: () => {} },
-            queue_codes: { type:Array, default: () => [] },
-            log_codes: { type:Array, default: () => [] },
+            codes: { type:Array, default: () => [] },
             presets: { type:Object, default: () => {} },
             conso: { type:String, default: '' },
            },
