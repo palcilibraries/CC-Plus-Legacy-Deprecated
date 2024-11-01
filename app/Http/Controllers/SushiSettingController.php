@@ -113,6 +113,7 @@ class SushiSettingController extends Controller
                 $setting = $rec->toArray();
                 $setting['can_edit'] = $rec->canManage();
                 $setting['provider']['connectors'] = array();
+                if (!$rec->provider) continue;
                 $required = $rec->provider->connectors;
                 foreach ($global_connectors as $gc) {
                     $cnx = $gc->toArray();
