@@ -10,8 +10,7 @@
             :reports="{{ json_encode($reports) }}"
             :bounds="{{ json_encode($bounds) }}"
             :filters="{{ json_encode($filters) }}"
-            :queue_codes="{{ json_encode($queue_codes) }}"
-            :log_codes="{{ json_encode($log_codes) }}"
+            :codes="{{ json_encode($codes) }}"
             :presets="{{ json_encode($presets) }}"
             :conso="{{ json_encode($conso) }}"
 ></harvesting>

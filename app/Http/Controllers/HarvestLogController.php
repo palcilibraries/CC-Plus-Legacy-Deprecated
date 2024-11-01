@@ -151,16 +151,15 @@ class HarvestLogController extends Controller
            // Query for min and max yearmon values
            $bounds = $this->harvestBounds();
 
-           // make a list of error codes - for now just return everthing that exists in failedHarvests
-           $allErrorCodes = CcplusError::get(['id','new_status']);
-           $queue_codes = $allErrorCodes->where('new_status','ReQueued')->pluck('id')->toArray();
-           array_unshift($queue_codes, 'No Error');
-           $log_codes = $allErrorCodes->where('new_status','<>','ReQueued')->pluck('id')->toArray();
-           array_unshift($log_codes, 'No Error');
+           // get a list of error codes - for now just return the unique list of (last) error_id in all harvestlogs
+           $hCodes = HarvestLog::where('error_id','>',0)->distinct('error_id')->orderBy('error_id')->pluck('error_id')->toArray();
+           // Setup code options - limit to intersection of non-Requeued codes and what is in #hCodes
+           $codes = CcplusError::where('new_status','<>','ReQueued')->whereIn('id',$hCodes)->pluck('id')->toArray();
+           array_unshift($codes, 'No Error');
 
            // Setup the initial page view
            return view('harvests.index', compact('harvests','institutions','groups','providers','reports','bounds','filters',
-                                                 'queue_codes','log_codes','presets','conso'));
+                                                 'codes','presets','conso'));
        }
 
        // Skip querying for records unless we're returning json
@@ -249,6 +248,7 @@ class HarvestLogController extends Controller
                ->get();
 
            // Make arrays for updating the filter options in the U/I
+           $codes = $harvest_data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
            $rept_ids = $harvest_data->unique('report_id')->sortBy('report_id')->pluck('report_id')->toArray();
            $prov_ids = $harvest_data->unique('sushiSetting.provider')->sortBy('sushiSetting.provider.name')
                                     ->pluck('sushiSetting.prov_id')->toArray();
@@ -287,8 +287,8 @@ class HarvestLogController extends Controller
            });
            array_unshift($updated_ym , 'Last 24 hours');
            return response()->json(['harvests' => $harvests, 'updated' => $updated_ym, 'truncated' => $truncated, 200,
-                                    'rept_opts' => $rept_ids, 'prov_opts' => $prov_ids, 'inst_opts' => $inst_ids,
-                                    'yymms' => $yymms]);
+                                    'code_opts' => $codes, 'rept_opts' => $rept_ids, 'prov_opts' => $prov_ids,
+                                    'inst_opts' => $inst_ids, 'yymms' => $yymms]);
        }
    }
 
@@ -1061,8 +1061,14 @@ class HarvestLogController extends Controller
        $repts = $data->unique('report_id')->pluck('report_id')->toArray();
        $yymms = $data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
        $stats = $data->unique('status')->sortBy('status')->pluck('status')->toArray();
+       $codes = $data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
+       if (count($codes) == 1 && is_null($codes[0])) {
+           $codes = [];
+       }
+       array_unshift($codes, 'No Error');
+
        return response()->json(["result" => true, "jobs" => $harvests, "prov_ids" => $provs, "inst_ids" => $insts,
-                                "rept_ids" => $repts, "yymms" => $yymms, "statuses" => $stats]);
+                                "rept_ids" => $repts, "yymms" => $yymms, "statuses" => $stats, "codes" => $codes]);
    }
 
    // Turn a fromYM/toYM range into an array of yearmon strings
