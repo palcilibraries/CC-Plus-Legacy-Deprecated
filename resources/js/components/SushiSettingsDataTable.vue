@@ -163,19 +163,23 @@
       </template>
       <template v-slot:item.customer_id="{ item }">
         <span v-if="item.customer_id=='-required-'" class="Incomplete">required</span>
-        <span v-else>{{ item.customer_id }}</span>
+        <span v-else-if="!item.customer_id">&nbsp;</span>
+        <span v-else>{{ item.customer_id.substr(0,4) }}...</span>
       </template>
       <template v-slot:item.requestor_id="{ item }">
         <span v-if="item.requestor_id=='-required-'" class="Incomplete">required</span>
-        <span v-else>{{ item.requestor_id }}</span>
+        <span v-else-if="!item.requestor_id">&nbsp;</span>
+        <span v-else>{{ item.requestor_id.substr(0,4) }}...</span>
       </template>
       <template v-slot:item.api_key="{ item }">
         <span v-if="item.api_key=='-required-'" class="Incomplete">required</span>
-        <span v-else>{{ item.api_key }}</span>
+        <span v-else-if="!item.api_key">&nbsp;</span>
+        <span v-else>{{ item.api_key.substr(0,4) }}...</span>
       </template>
       <template v-slot:item.extra_args="{ item }">
         <span v-if="item.extra_args=='-required-'" class="Incomplete">required</span>
-        <span v-else>{{ item.extra_args }}</span>
+        <span v-else-if="!item.extra_args">&nbsp;</span>
+        <span v-else>{{ item.extra_args.substr(0,4) }}...</span>
       </template>
       <template v-slot:item.action="{ item }">
         <span class="dt_action">
