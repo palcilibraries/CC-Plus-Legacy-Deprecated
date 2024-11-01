@@ -54,14 +54,16 @@
               </v-col>
             </v-row>
           </template>
+          <v-row v-if="service_url!=null" class="d-flex ma-2" no-gutters>
+            <v-col class="d-flex px-2" cols="8">
+              <v-text-field v-model="service_url" label="SUSHI Service URL" outlined readonly></v-text-field>
+            </v-col>
+          </v-row>
           <div v-if="showTest">
             <div>{{ testStatus }}</div>
             <div v-for="row in testData">{{ row }}</div>
           </div>
         </div>
-        <v-row v-if="service_url!=null" class="d-flex ma-2" no-gutters>
-         <v-col class="d-flex pl-4">SUSHI Service URL : {{ service_url }}</v-col>
-        </v-row>
       </v-form>
     </v-container>
     <div v-if="success || failure" class="status-message">
