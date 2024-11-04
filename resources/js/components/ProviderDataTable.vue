@@ -392,7 +392,8 @@
             } else if (Action=='Connect') {
                 msg += "Connecting these providers will add an empty set of SUSHI credentials for each row, and the<br/>";
                 msg += "credential(s) will be flagged as 'Incomplete'. Until the required credentials are defined, no report<br />";
-                msg += "retrieval will be performed by the CC-Plus automated harvesting system.<br />";
+                msg += "retrieval will be performed by the CC-Plus automated harvesting system.<br />Connecting providers";
+                msg += " in-bulk will also enable a single report-assignment (PR/DR/...) for each provider.<br />"
                 msg += "Note that any providers already connected will be skipped.";
             } else if (Action=='Disconnect') {
                 msg += "CAUTION!!<br />Disconnecting provider records cannot be reversed!! Providers with harvested data<br />";
@@ -435,7 +436,7 @@
                   this.dtKey += 1;           // update the datatable
                 } else if (Action=='Connect') {
                   for (const provider of Rows) {
-                    if (provider.connected.length>0) {
+                    if (provider.connected.includes( p => p.inst_id == this.inst_context )) {
                       skip_count += 1;
                     } else {
                       // Connect provider consortium-wide
