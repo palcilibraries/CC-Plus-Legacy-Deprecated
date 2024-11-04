@@ -64,26 +64,28 @@
         </v-col>
       </v-row>
       <v-row class="d-flex mx-2 my-0" no-gutters>
-        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-6 justify-center" cols="6">
-          <strong>Reports to Harvest</strong>
+        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-6 justify-center" cols="12">
+          <span v-if="!this.reportsEnabled"><strong>Reports to Harvest</strong> (at least one is required)</span>
+          <span v-else><strong>Reports to Harvest</strong></span>
         </v-col>
-        <v-col v-else class="d-flex px-4 justify-center" cols="6">
+        <v-col v-else class="d-flex px-4 justify-center" cols="12">
           <strong>No reports enabled globally</strong>
         </v-col>
       </v-row>
       <v-row class="d-flex mx-2 my-0" no-gutters>
-        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4 justify-center" cols="6">
+        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4 justify-center" cols="12">
           <v-list class="shaded" dense>
             <v-list-item v-for="rpt in mutable_provider.master_reports" :key="rpt.name" class="verydense">
               <v-checkbox v-model="form.report_state[rpt.name]['prov_enabled']" key="rpt.name" :label="rpt.name" dense
                           :disabled="(mutable_dtype=='edit' && is_manager && !is_admin && !mutable_provider.can_edit) ||
                                      (form.inst_id!=1 && provider.is_conso && form.report_state[rpt.name]['conso_enabled'])"
+                          :rules="reportRules"
               ></v-checkbox>
             </v-list-item>
           </v-list>
           <div class="float-none"></div>
         </v-col>
-        <v-col v-else class="d-flex" cols="6">&nbsp;</v-col>
+        <v-col v-else class="d-flex" cols="12">&nbsp;</v-col>
       </v-row>
       <v-row v-if="mutable_provider.last_harvest!=null" class="d-flex mx-2 my-0" no-gutters>
         <v-col class="d-flex px-6" cols="6">&nbsp;</v-col>
@@ -210,7 +212,7 @@
         this.form.allow_inst_specific = this.mutable_provider.allow_inst_specific;
         this.form.report_state = Object.assign({},this.mutable_provider.report_state);
         if ( this.is_admin ) {
-            this.form.inst_id = (this.mutable_dtype == 'edit') ? this.mutable_provider.inst_id : 1;
+            this.form.inst_id = this.mutable_provider.inst_id;
             let _inst = this.institutions.find(ii => ii.id == this.form.inst_id);
             this.current_inst_name = (typeof(_inst) == 'undefined') ? "" : _inst.name;
         } else {
@@ -227,6 +229,12 @@
           } else {
               return [];
           }
+      },
+      reportsEnabled() {
+          return Object.values(this.form.report_state).some( rpt => rpt.prov_enabled == true);
+      },
+      reportRules() {
+          return [ this.reportsEnabled || "At least one Report type must be selected" ];
       },
       unconnected_insts() {
           return this.institutions.filter(inst => !this.provider.connected.map(p => p.inst_id).includes(inst.id));
