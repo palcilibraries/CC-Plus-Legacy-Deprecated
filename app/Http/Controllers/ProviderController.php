@@ -504,9 +504,26 @@ class ProviderController extends Controller
         $provider->allow_inst_specific = (isset($input['allow_inst_specific'])) ? $input['allow_inst_specific'] : 0;
         $provider->save();
 
-        //Attach report definitions to new provider
+        // Get Master reports and ID's enabled on the global_provider
         $master_reports = Report::where('revision',5)->where('parent_id',0)->orderBy('dorder','ASC')->get(['id','name']);
         $master_ids = $global_provider->master_reports;
+
+        // If report_state not passed in (i.e. Bulk Connection from datatable), figure out the
+        // (smallest) report to be enabled (depends on dorder!)
+        if (!isset($input['report_state']) && ( $input['inst_id'] == 1 || ($input['inst_id'] > 1 && !$conso_connection) ) ) {
+            $min_rpt = null;
+            $input['report_state'] = array();
+            foreach ($master_reports as $mr) {
+                if ( is_null($min_rpt) && in_array($mr->id,$master_ids) ) {
+                    $input['report_state'][$mr->name] = array('prov_enabled' => true, 'conso_enabled' => false);
+                    $min_rpt = $mr->id;
+                } else {
+                    $input['report_state'][$mr->name] = array('prov_enabled' => false, 'conso_enabled' => false);
+                }
+            }
+        }
+
+        //Attach report definitions to new provider
         foreach ($master_reports as $rpt) {
             if (in_array($rpt->id, $master_ids) && !in_array($rpt->id,$conso_reports)) {
                 if (isset($input['report_state'])) {
