@@ -450,7 +450,7 @@ class SushiSettingController extends Controller
         } else {
             $filters = array('inst' => [], 'prov' => [], 'harv_stat' => [], 'group' => 0);
         }
-        $export_missing = ($request->export_missing) ? json_decode($request->export_missing, true) : false;
+        $export_missing = ($request->exclude_missing) ? json_decode($request->exclude_missing, true) : true;
 
         // Admins have export using group filter, manager can only export their own inst
         $group = null;
