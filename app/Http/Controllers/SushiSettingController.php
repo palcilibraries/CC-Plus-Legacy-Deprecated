@@ -6,6 +6,7 @@ use App\SushiSetting;
 use App\Institution;
 use App\Provider;
 use App\GlobalProvider;
+use App\Report;
 use App\HarvestLog;
 use App\InstitutionGroup;
 use App\ConnectionField;
@@ -225,31 +226,42 @@ class SushiSettingController extends Controller
     public function store(Request $request)
     {
         abort_unless(auth()->user()->hasAnyRole(['Admin','Manager']), 403);
-        $fields = $request->all();
+        $input = $request->all();
 
         // Manager can only create settings for their own institution
-        if (!auth()->user()->hasAnyRole(['Admin']) && $fields['inst_id'] != auth()->user()->inst_id) {
+        if (!auth()->user()->hasAnyRole(['Admin']) && $input['inst_id'] != auth()->user()->inst_id) {
             return response()->json(['result' => false, 'msg' => 'You can only assign credentials for your institution']);
         }
 
         // Confirm valid provider ID (pointing at a global)
-        if (!isset($fields['prov_id'])) {
+        if (!isset($input['prov_id'])) {
             return response()->json(['result' => false, 'msg' => 'Provider assignment is required']);
         }
-        $gp = GlobalProvider::where('id',$fields['prov_id'])->first();
+        $gp = GlobalProvider::where('id',$input['prov_id'])->first();
         if (!$gp) {
             return response()->json(['result' => false, 'msg' => 'Provider not unknown or undefined']);
         }
 
         // If there is no existing (conso) Provider definition for the global provider, create it now
-        $consoProvider = Provider::where('global_id',$gp->id)->whereIn('inst_id', [1,$fields['inst_id']])->first();
-        if (!$consoProvider) {
+        $consoProvider = Provider::where('global_id',$gp->id)->whereIn('inst_id', [1,$input['inst_id']])->first();
+        if (!$consoProvider && isset($input['report_state'])) {
             $provider_data = array('name' => $gp->name, 'global_id' => $gp->id, 'is_active' => $gp->is_active,
-                                   'inst_id' => $fields['inst_id'], 'allow_inst_specific' => 0);
+                                   'inst_id' => $input['inst_id'], 'allow_inst_specific' => 0);
             $new_provider = Provider::create($provider_data);
+
+            // Attach report definitions to new provider
+            $global_report_ids = $gp->master_reports;
+            $master_reports = Report::where('revision',5)->where('parent_id',0)->whereIn('id',$global_report_ids)
+                                    ->orderBy('dorder','ASC')->get(['id','name']);
+            foreach ($master_reports as $rpt) {
+                if ($input['report_state'][$rpt->name]['prov_enabled']) {
+                    $new_provider->reports()->attach($rpt->id);
+                }
+            }
         }
 
         // Create the new sushi setting record and relate to the GLOBAL ID (get existing if already defined)
+        $fields = array_except($input,array('report_state'));
         $setting = SushiSetting::firstOrCreate($fields);
         $setting->load('institution', 'provider');
         $setting->provider->connectors = ConnectionField::whereIn('id',$setting->provider->connectors)->get();

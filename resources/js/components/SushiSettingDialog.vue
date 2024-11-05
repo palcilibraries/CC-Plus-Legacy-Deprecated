@@ -54,6 +54,26 @@
               </v-col>
             </v-row>
           </template>
+          <div v-if="mutable_dtype=='create' && !sushi_prov.is_conso">
+            <v-row class="d-flex my-0 mx-2" no-gutters>
+              <v-col class="d-flex px-2 warning justify-center">
+                <span>Creating this setting will add a provider definition; one report-type is required</span>
+              </v-col>
+            </v-row>
+            <v-row class="d-flex  my-0 mx-2 justify-center" no-gutters>
+              <strong>Report(s) to Harvest</strong>
+            </v-row>
+            <template v-for="rpt in sushi_prov.master_reports">
+              <v-row class="d-flex ma-0 mx-2" no-gutters>
+                <!-- <v-col v-if="sushi_prov[report_status[rpt.name]]=='A'" class="d-flex px-4 justify-center" cols="12"> -->
+                <v-col class="d-flex px-4 justify-center" cols="12">
+                  <v-checkbox v-model="form.report_state[rpt.name]['prov_enabled']" :label="rpt.name" class="verydense"
+                              key="rpt.name" :rules="reportRules"
+                  ></v-checkbox>
+                </v-col>
+              </v-row>
+            </template>
+          </div>
           <v-row v-if="service_url!=null" class="d-flex ma-2" no-gutters>
             <v-col class="d-flex px-2" cols="8">
               <v-text-field v-model="service_url" label="SUSHI Service URL" outlined readonly></v-text-field>
@@ -111,6 +131,7 @@
         mutable_dtype: this.dtype,
         statusval: 'Enabled',
         enable_switch: 1,
+        report_status: {'PR':'PR_status', 'DR':'DR_status', 'TR':'TR_status', 'IR':'IR_status'},
         service_url: null,
         form: new window.Form({
             inst_id: null,
@@ -119,7 +140,9 @@
             requestor_id: '',
             api_key: '',
             extra_args: '',
-            status: ''
+            status: '',
+            report_state: {'PR':{'conso_enabled':false, 'prov_enabled':false}, 'DR':{'conso_enabled':false, 'prov_enabled':false},
+                           'TR':{'conso_enabled':false, 'prov_enabled':false}, 'IR':{'conso_enabled':false, 'prov_enabled':false}},
         }),
       }
     },
@@ -137,6 +160,11 @@
         if (this.all_settings.length>0 && this.form.prov_id != null && this.form.inst_id != null) {
           this.testExisting();
           this.form_key += 1;
+        }
+        // Creating new means we should initialize the form report state also
+        if (this.mutable_dtype == 'create') {
+          // Update form report_state to match sushi_prov
+          Object.assign(this.form.report_state, this.sushi_prov['report_state']);
         }
       },
     },
@@ -268,6 +296,12 @@
                                                                               s.prov_id == this.form.prov_id );
         }
       },
+      reportsEnabled() {
+          return Object.values(this.form.report_state).some( rpt => rpt.prov_enabled == true);
+      },
+      reportRules() {
+          return [ this.reportsEnabled || "At least one Report type must be selected" ];
+      },
     },
     mounted() {
       if (this.dtype == 'edit' && this.isEmpty(this.setting)) this.mutable_dtype = 'create';
@@ -294,5 +328,8 @@
     }
   }
 </script>
-<style>
+<style scoped>
+.verydense {
+  max-height: 16px;
+}
 </style>
