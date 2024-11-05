@@ -486,7 +486,7 @@
               }
               // Set flag if changed_filter was just reset (so we can reset the options)
               let just_cleared = ( ( (changed_filter == 'inst' || changed_filter == 'group') && this.limit_inst_ids.length==0 ) ||
-                                   ( changed_filter == 'harv_stat' && this.filter_options['harv_stat'].length==0 ) ||
+                                   ( changed_filter == 'harv_stat' && this.filters['harv_stat'].length==0 ) ||
                                    ( (changed_filter == 'prov') && !filteringProv) );
               // Update filter options (skip changed filter if it is not cleared)
               // Filter to what is found + what is set in the filter already, starting with the inst/group filters
@@ -516,6 +516,10 @@
                 let values = [... new Set(status_vals)];
                 this.filter_options['harv_stat'] = this.statuses.filter(s => (values.includes(s) ||
                                                                               this.filters['harv_stat'].includes(s)));
+              }
+              // Restore a cleared filter to show ALL options
+              if (just_cleared) {
+                  this.filter_options[changed_filter] = [ ...this[this.allOpts[changed_filter]]];
               }
           },
           getSettings() {
