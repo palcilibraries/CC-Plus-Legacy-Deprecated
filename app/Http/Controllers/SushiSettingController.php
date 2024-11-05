@@ -450,8 +450,7 @@ class SushiSettingController extends Controller
         } else {
             $filters = array('inst' => [], 'prov' => [], 'harv_stat' => [], 'group' => 0);
         }
-        $export_missing = ($request->exclude_missing) ? json_decode($request->exclude_missing, true) : true;
-
+        $exclude_missing = ($request->exclude_missing) ? json_decode($request->exclude_missing, true) : true;
         // Admins have export using group filter, manager can only export their own inst
         $group = null;
         if ($thisUser->hasRole("Admin")) {
@@ -548,7 +547,7 @@ class SushiSettingController extends Controller
         $top_txt .= "The data rows on the 'Credentials' tab provide reference values for the Provider-ID and";
         $top_txt .= " Institution-ID columns.\n\n";
         $top_txt .= "Once the data sheet is ready to import, save the sheet as a CSV and import it into CC-Plus.\n";
-        $top_txt .= "Any header row or columns beyond 'G' will be ignored. Columns J-K are informational only.";
+        $top_txt .= "Any header row or columns beyond 'G' will be ignored. Columns I-J are informational only.";
         $info_sheet->setCellValue('A1', $top_txt);
         $info_sheet->setCellValue('A10', "NOTES: ");
         $info_sheet->mergeCells('B10:E12');
@@ -603,16 +602,11 @@ class SushiSettingController extends Controller
         $info_sheet->setCellValue('C23', 'SUSHI API Key , provider-specific');
         $info_sheet->setCellValue('D23', 'No');
         $info_sheet->setCellValue('E23', 'NULL');
-        $info_sheet->setCellValue('A24', 'Extra Arguments');
+        $info_sheet->setCellValue('A24', 'LEAVE BLANK');
         $info_sheet->setCellValue('B24', 'String');
-        $info_sheet->setCellValue('C24', 'Extra Request Arguments, provider-specific');
+        $info_sheet->setCellValue('C24', 'Reserved for CC-Plus use');
         $info_sheet->setCellValue('D24', 'No');
         $info_sheet->setCellValue('E24', 'NULL');
-        $info_sheet->setCellValue('A25', 'Support Email');
-        $info_sheet->setCellValue('B25', 'String');
-        $info_sheet->setCellValue('C25', 'Support email address, per-provider');
-        $info_sheet->setCellValue('D25', 'No');
-        $info_sheet->setCellValue('E25', 'NULL');
         $info_sheet->mergeCells('A27:E29');
         $info_sheet->getStyle('A27:E29')->applyFromArray($head_style);
         $info_sheet->getStyle('A27:E29')->getAlignment()->setWrapText(true);
@@ -636,12 +630,12 @@ class SushiSettingController extends Controller
             $data_rows[] = array( 'A' => $setting->inst_id, 'B' => $setting->institution->local_id,
                                   'C' => $setting->prov_id, 'D' => $setting->status, 'E' => $setting->customer_id,
                                   'F' => $setting->requestor_id, 'G' => $setting->api_key, 'H' => $setting->extra_args,
-                                  'J' => $setting->institution->name, 'K' => $setting->provider->name );
+                                  'I' => $setting->institution->name, 'J' => $setting->provider->name );
         }
 
         // If we're adding missing settings to the export, get and add output data rows
         // (Only includes settings that are missing for is_active INST <-> PROV pairs)
-        if ($export_missing) {
+        if ( !$exclude_missing ) {
             // Get ALL known sushisettings inst_id <> prov_id pairs
             $existing_sushi_pairs = SushiSetting::select('inst_id','prov_id')->get()->map(function ($setting) {
                 return array($setting->inst_id, $setting->prov_id);
@@ -662,7 +656,7 @@ class SushiSettingController extends Controller
                     }
                     $data_rows[] = array( 'A' => $inst->id, 'B' => $inst->local_id, 'C' => $prov->id, 'D' => 'Incomplete',
                                           'E' => $cnx['customer_id'], 'F' => $cnx['requestor_id'], 'G' => $cnx['api_key'],
-                                          'H' => $cnx['extra_args'], 'J' => $inst->name, 'K' => $prov->name );
+                                          'H' => $cnx['extra_args'], 'I' => $inst->name, 'J' => $prov->name );
                 }
             }
         }
@@ -684,9 +678,9 @@ class SushiSettingController extends Controller
         $inst_sheet->setCellValue('E1', 'Customer ID');
         $inst_sheet->setCellValue('F1', 'Requestor ID');
         $inst_sheet->setCellValue('G1', 'API Key');
-        $inst_sheet->setCellValue('H1', 'Extra Args');
-        $inst_sheet->setCellValue('J1', 'Institution-Name');
-        $inst_sheet->setCellValue('K1', 'Provider-Name');
+        $inst_sheet->setCellValue('H1', 'LEAVE BLANK');
+        $inst_sheet->setCellValue('I1', 'Institution-Name');
+        $inst_sheet->setCellValue('J1', 'Provider-Name');
 
         // Put data rows into the sheet
         $row = 2;
@@ -698,7 +692,7 @@ class SushiSettingController extends Controller
         }
 
         // Auto-size the columns
-        $columns = array('A','B','C','D','E','F','G','H','I','J','K');
+        $columns = array('A','B','C','D','E','F','G','H','I','J');
         foreach ($columns as $col) {
             $inst_sheet->getColumnDimension($col)->setAutoSize(true);
         }
