@@ -124,7 +124,11 @@
         <span v-else>&nbsp;</span>
       </v-col>
       <v-col v-if='is_admin || is_manager' class="d-flex" cols="2">&nbsp;</v-col>
-      <v-col v-else class="d-flex" cols="8">&nbsp;</v-col>
+      <v-col v-else class="d-flex" cols="3">&nbsp;</v-col>
+      <v-col v-if="truncatedResult" class="d-flex px-2 align-center" cols="3">
+        <span class="fail" role="alert">Result Truncated To 500 Records</span>
+      </v-col>
+      <v-col v-else class="d-flex" cols="2">&nbsp;</v-col>
       <v-col class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
@@ -231,6 +235,7 @@
                     {id:'Waiting', opt:'Process Queue'}, {id:'Processing', opt:'Processing'} ],
         mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
         allSelected: {'providers':false, 'institutions':false, 'groups':false, 'codes':false, 'statuses':false, 'yymms':false},
+        truncatedResult: false,
         bulk_actions: ['Pause', 'ReStart', 'Kill'],
         dtKey: 1,
         bulkAction: '',
@@ -258,6 +263,7 @@
             axios.get("/harvest-queue?filters="+_filters)
                  .then((response) => {
                      this.harvest_jobs = response.data.jobs;
+                     this.truncatedResult = response.data.truncated;
                      // update filtering options
                      this.mutable_options['providers'] = (response.data.prov_ids.length > 0)
                                             ? this.providers.filter( p => response.data.prov_ids.includes(p.id) )
