@@ -292,7 +292,7 @@ class HarvestLogController extends Controller
                }
            });
            array_unshift($updated_ym , 'Last 24 hours');
-           return response()->json(['harvests' => $harvests, 'updated' => $updated_ym, 'truncated' => $truncated, 200,
+           return response()->json(['harvests' => $harvests, 'updated' => $updated_ym, 'truncated' => $truncated,
                                     'code_opts' => $codes, 'rept_opts' => $rept_ids, 'prov_opts' => $prov_ids,
                                     'inst_opts' => $inst_ids, 'yymms' => $yymms]);
        }
@@ -1009,9 +1009,10 @@ class HarvestLogController extends Controller
                               'Paused' => 'Paused', 'ReQueued' => 'ReQueued', 'Waiting' => 'Process Queue',
                               'Processing' => 'Processing', 'NoRetries' => "Out of Retries");
 
-       // Get the harvests, by-status, that we're interested in
-       $data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
-                             ->whereIn('status',array_keys($displayStatus))
+       // Get the harvests, by-status, that are not currently running (limit to 500 records)
+       $queue_status = array('Queued', 'Pending', 'Paused', 'ReQueued', 'Waiting');
+       $queue_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
+                             ->whereIn('status',$queue_status)
                              ->when(count($filters["reports"]) > 0, function ($qry) use ($filters) {
                                  return $qry->whereIn("report_id", $filters["reports"]);
                              })
@@ -1032,7 +1033,15 @@ class HarvestLogController extends Controller
                                  }
                              })
                              ->orderBy("updated_at", "ASC")
+                             ->take(500)
                              ->get();
+
+       // Get the harvests, ARE currently running, and combine with queued set
+       $exec_status = array('Harvesting','Processing');
+       $exec_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
+                               ->whereIn('status',$exec_status)->get();
+       $data = $exec_data->merge($queue_data);
+       $truncated = ($queue_data->count() == 500);
 
        // Get global Queue rows for the harvests (if they have one)
        $harvest_ids = $data->pluck('id')->toArray();
@@ -1074,7 +1083,8 @@ class HarvestLogController extends Controller
        array_unshift($codes, 'No Error');
 
        return response()->json(["result" => true, "jobs" => $harvests, "prov_ids" => $provs, "inst_ids" => $insts,
-                                "rept_ids" => $repts, "yymms" => $yymms, "statuses" => $stats, "codes" => $codes]);
+                                "rept_ids" => $repts, "yymms" => $yymms, "statuses" => $stats, "codes" => $codes,
+                                "truncated" => $truncated]);
    }
 
    // Turn a fromYM/toYM range into an array of yearmon strings
