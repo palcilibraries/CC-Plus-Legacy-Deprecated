@@ -1011,7 +1011,7 @@ class HarvestLogController extends Controller
 
        // Get the harvests, by-status, that are not currently running (limit to 500 records)
        $queue_status = array('Queued', 'Pending', 'Paused', 'ReQueued', 'Waiting');
-       $queue_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
+       $all_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
                              ->whereIn('status',$queue_status)
                              ->when(count($filters["reports"]) > 0, function ($qry) use ($filters) {
                                  return $qry->whereIn("report_id", $filters["reports"]);
@@ -1033,15 +1033,15 @@ class HarvestLogController extends Controller
                                  }
                              })
                              ->orderBy("updated_at", "ASC")
-                             ->take(500)
                              ->get();
 
-       // Get the harvests, ARE currently running, and combine with queued set
-       $exec_status = array('Harvesting','Processing');
-       $exec_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
-                               ->whereIn('status',$exec_status)->get();
-       $data = $exec_data->merge($queue_data);
-       $truncated = ($queue_data->count() == 500);
+
+       // Get the harvests that are currently running and combine with at-most 500 "queued" harvests
+       $exec_records = $all_data->whereIn('status',['Harvesting','Processing']);
+       $exec_ids = $exec_records->pluck('id')->toArray();
+       $queue_records = $all_data->whereNotIn('id',$exec_ids)->take(500);
+       $data = $exec_records->merge($queue_records);
+       $truncated = ($all_data->count() > 500);
 
        // Get global Queue rows for the harvests (if they have one)
        $harvest_ids = $data->pluck('id')->toArray();
@@ -1073,10 +1073,10 @@ class HarvestLogController extends Controller
           }
        }
 
-       $repts = $data->unique('report_id')->pluck('report_id')->toArray();
-       $yymms = $data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
-       $stats = $data->unique('status')->sortBy('status')->pluck('status')->toArray();
-       $codes = $data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
+       $repts = $all_data->unique('report_id')->pluck('report_id')->toArray();
+       $yymms = $all_data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
+       $stats = $all_data->unique('status')->sortBy('status')->pluck('status')->toArray();
+       $codes = $all_data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
        if (count($codes) == 1 && is_null($codes[0])) {
            $codes = [];
        }
