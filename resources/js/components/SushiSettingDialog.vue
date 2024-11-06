@@ -49,7 +49,7 @@
             <v-row class="d-flex mx-2" no-gutters>
               <v-col v-if="cnx.required || (setting[cnx.name] != null && setting[cnx.name]!='')" class="d-flex px-2" cols="8">
                 <v-text-field v-if="cnx.required" v-model="form[cnx.name]" :label='cnx.label' :id='cnx.name' outlined
-                              :rules="[required]"></v-text-field>
+                              :rules="[required]" clearable></v-text-field>
                 <v-text-field v-else v-model="form[cnx.name]" :label='cnx.label' :id='cnx.name' outlined></v-text-field>
               </v-col>
             </v-row>
@@ -76,7 +76,7 @@
           </div>
           <v-row v-if="service_url!=null" class="d-flex ma-2" no-gutters>
             <v-col class="d-flex px-2" cols="8">
-              <v-text-field v-model="service_url" label="SUSHI Service URL" outlined readonly></v-text-field>
+              <v-text-field v-model="service_url" label="SUSHI Service URL" outlined disabled></v-text-field>
             </v-col>
           </v-row>
           <div v-if="showTest">
