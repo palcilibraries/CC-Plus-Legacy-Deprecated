@@ -115,7 +115,7 @@
       </v-col>
     </v-row>
     <v-row class="d-flex pa-1 align-center" no-gutters>
-      <v-col v-if='is_admin || is_manager' class="d-flex px-2" cols="3">
+      <v-col v-if='is_admin || is_manager' class="d-flex px-2" cols="2">
         <v-select :items='bulk_actions' v-model='bulkAction' @change="processBulk()" label="Bulk Actions"
                   :disabled='selectedRows.length==0'></v-select>
       </v-col>
@@ -123,12 +123,10 @@
         <span v-if="selectedRows.length>0" class="form-fail">( Will affect {{ selectedRows.length }} rows )</span>
         <span v-else>&nbsp;</span>
       </v-col>
-      <v-col v-if='is_admin || is_manager' class="d-flex" cols="2">&nbsp;</v-col>
-      <v-col v-else class="d-flex" cols="3">&nbsp;</v-col>
+      <v-col v-if='!is_admin && !is_manager' class="d-flex" cols="5">&nbsp;</v-col>
       <v-col v-if="truncatedResult" class="d-flex px-2 align-center" cols="3">
         <span class="fail" role="alert">Result Truncated To 500 Records</span>
       </v-col>
-      <v-col v-else class="d-flex" cols="2">&nbsp;</v-col>
       <v-col class="d-flex px-2 align-center" cols="2">
         <div v-if="mutable_filters['codes'].length>0" class="x-box">
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('codes')"/>&nbsp;
