@@ -398,7 +398,7 @@
             } else if (Action=='Disconnect') {
                 msg += "CAUTION!!<br />Disconnecting provider records cannot be reversed!! Providers with harvested data<br />";
                 msg += "will NOT be changed.<br />";
-                msg += " NOTE: ALL SUSHI definitions associated with the selected providers will also be deleted!";
+                msg += " NOTE: ALL SUSHI credentials associated with the selected providers will also be deleted!";
             } else {
                 this.failure = "Unrecognized Bulk Action in processBulk!";
                 return;
@@ -414,17 +414,29 @@
                     if ( !provider.can_delete ) {
                       skip_count+=1;
                     } else {
-                      axios.delete('/providers/'+provider.id)
+                      // Pass global provider ID and instProvID to the customDestroy method.
+                      // If instProvID=0, it means delete ALL providers related to the global,
+                      // otherwise, the delete operation will remove just the provider record with ID=instProvID
+                      let instProvID = provider.conso_id;
+                      if (this.is_admin && (this.inst_context == 1 ||
+                           (this.inst_context !=1 && _prov.connected_count==1 && _prov.is_conso))) {
+                        instProvID = "0";
+                      }
+                      let url = '/providers/customDestroy/'+provider.id+"/"+instProvID;
+                      axios.delete(url)
                       .then( (response) => {
                         if (response.data.result) {
-                          var _idx = this.mutable_providers.findIndex(p=>p.id == provider,id);
+                          var _idx = this.mutable_providers.findIndex(p=>p.id == provider.id);
                           this.mutable_providers[_idx].inst_id = null;
                           this.mutable_providers[_idx].inst_name = '';
                           this.mutable_providers[_idx].connected = [];
                           this.mutable_providers[_idx].day_of_month = '';
                           this.mutable_providers[_idx].can_edit = false;
                           this.mutable_providers[_idx].can_delete = false;
-                          this.$emit('disconnect-prov', this.mutable_providers[_idx]);
+                          this.mutable_providers[_idx].is_conso = false;
+                          this.mutable_providers[_idx].connection_count = 0;
+                          this.mutable_providers[_idx]['report_state'] = {...this.empty_report_state};
+                          this.$emit('change-prov', this.mutable_providers[_idx]);
                         }
                       })
                       .catch({});
@@ -433,6 +445,7 @@
                   }
                   this.success  = "Selected providers: "+bulk_count+" successfully disconnected";
                   this.success += (skip_count>0) ? " ("+skip_count+" skipped)" : "";
+                  this.selectedRows = [];
                   this.dtKey += 1;           // update the datatable
                 } else if (Action=='Connect') {
                   for (const provider of Rows) {
@@ -463,6 +476,7 @@
                   }
                   this.success  = "Selected providers: " + bulk_count + " successfully connected";
                   this.success += (skip_count>0) ? " ("+skip_count+" skipped)" : "";
+                  this.selectedRows = [];
                   this.dtKey += 1;           // update the datatable
                 } else {
                   let state = (Action=='Set Active') ? 1 : 0;
@@ -492,13 +506,13 @@
                   }
                   this.success  = "Selected providers: "+bulk_count+" successfully updated";
                   this.success += (skip_count>0) ? " ("+skip_count+" skipped)" : "";
+                  this.selectedRows = [];
                   this.dtKey += 1;           // update the datatable
                 }
               }
             })
             .catch({});
             this.bulkAction = '';
-            this.selectedRows = [];
         },
         showConnected(id) {
             this.cur_provider = this.mutable_providers.find(p => p.id == id);
