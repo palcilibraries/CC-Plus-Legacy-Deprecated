@@ -96,7 +96,10 @@
             updated += 1;
           }
         });
-        if (updated > 0) this.logKey += 1;
+        if (updated > 0) {
+          this.logKey += 1;
+          this.queueKey += 1;
+        }
       },
       addHarvests ({ harvests, bounds }) {
         var added=0;
@@ -107,6 +110,7 @@
         if (added > 0) {
           this.mutable_bounds = [...bounds];
           this.logKey += 1;
+          this.queueKey += 1;
         }
       },
       restartedHarvest () { // Notify HarvestQueue component of restarted harvest
