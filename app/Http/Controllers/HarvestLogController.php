@@ -1011,7 +1011,7 @@ class HarvestLogController extends Controller
 
        // Get the harvests, by-status, that are not currently running (limit to 500 records)
        $all_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
-                             ->whereIn('status',$displayStatus)
+                             ->whereIn('status',array_keys($displayStatus))
                              ->when(count($filters["reports"]) > 0, function ($qry) use ($filters) {
                                  return $qry->whereIn("report_id", $filters["reports"]);
                              })
@@ -1046,9 +1046,7 @@ class HarvestLogController extends Controller
        $harvest_ids = $data->pluck('id')->toArray();
        $jobs = SushiQueueJob::where('consortium_id',$con->id)->whereIn('harvest_id',$harvest_ids)->get();
 
-       // map and filter (for inst and prov) the resu;ts
-       $provs = array();
-       $insts = array();
+       // map the results
        $harvests = array();
        foreach ($data as $rec) {
           if ( (count($limit_to_insts) > 0 && !in_array($rec->sushiSetting->inst_id, $limit_to_insts)) ||
@@ -1064,18 +1062,15 @@ class HarvestLogController extends Controller
           $rec->created = date("Y-m-d H:i", strtotime($rec->created_at));
           $rec->dStatus = $displayStatus[$rec->status];
           $harvests[] = $rec->toArray();
-          if (!in_array($rec->sushiSetting->prov_id, $provs)) {
-              $provs[] = $rec->sushiSetting->prov_id;
-          }
-          if (!in_array($rec->sushiSetting->inst_id, $insts)) {
-              $insts[] = $rec->sushiSetting->inst_id;
-          }
        }
 
+       // grab IDs/values for setting filter option in the UI
        $repts = $all_data->unique('report_id')->pluck('report_id')->toArray();
        $yymms = $all_data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
        $stats = $all_data->unique('status')->sortBy('status')->pluck('status')->toArray();
        $codes = $all_data->where('error_id','>',0)->unique('error_id')->sortBy('error_id')->pluck('error_id')->toArray();
+       $insts = $all_data->unique('sushiSetting.inst_id')->pluck('sushiSetting.inst_id')->toArray();
+       $provs = $all_data->unique('sushiSetting.prov_id')->pluck('sushiSetting.prov_id')->toArray();
        if (count($codes) == 1 && is_null($codes[0])) {
            $codes = [];
        }
