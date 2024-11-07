@@ -301,7 +301,7 @@
             this.form.is_active = _prov.is_active;
             this.form.refreshable = _prov.refreshable;
             this.form.server_url_r5 = _prov.server_url_r5;
-            this.form.day_of_month = _prov.day_of_month;
+            this.form.day_of_month = (_prov.day_of_month > 0) ? _prov.day_of_month : this.new_provider.day_of_month;
             this.form.report_state = _prov.report_state;
             this.form.notifications_url = _prov.notifications_url;
             this.form.platform_parm = _prov.platform_parm;
