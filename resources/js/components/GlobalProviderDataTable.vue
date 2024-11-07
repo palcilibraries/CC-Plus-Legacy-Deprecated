@@ -7,16 +7,14 @@
       <v-col class="d-flex px-2" cols="3">
         <v-btn small color="primary" @click="refreshAll()">FULL Registry Refresh</v-btn>
       </v-col>
+      <v-col class="d-flex px-2" cols="3">&nbsp;</v-col>
 <!--
-      <v-col class="d-flex px-2" cols="3">
-        <v-btn small color="primary" @click="enableImportForm">Import Platforms</v-btn>
-      </v-col>
--->
       <v-col class="d-flex px-2" cols="3">
         <a @click="doExport">
           <v-icon title="Export to Excel">mdi-microsoft-excel</v-icon>&nbsp; Export platforms to Excel
         </a>
       </v-col>
+-->
       <v-col class="d-flex px-2" cols="3">
         <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" single-line hide-details clearable
         ></v-text-field>
@@ -97,49 +95,6 @@
         Your search for "{{ search }}" found no results.
       </v-alert>
     </v-data-table>
-<!--
-    <v-dialog v-model="providerImportDialog" max-width="1200px">
-      <v-card>
-        <v-card-title>Import Platforms</v-card-title>
-        </v-card-subtitle>
-        <v-card-text>
-          <v-container grid-list-md>
-            <v-file-input show-size label="CC+ CSV Import File" v-model="csv_upload" accept="text/csv" outlined
-            ></v-file-input>
-            <p>
-              <strong>Note:&nbsp; Platform imports function exclusively as Updates. No existing platform records will
-              be deleted.</strong>
-            </p>
-            <p>
-              The import process overwrites existing settings whenever a match for a Platform-ID is found in column-A
-              of the import file. If no existing setting is found for the specified Platform-ID, a NEW platform will
-              be created with the fields specified. Platform names (column-B) must be unique. Attempting to create
-              a platform (or rename one) using an existing name will be ignored.
-            </p>
-            <p>
-              Platforms can be renamed via import by giving the ID in column-A and the replacement name in column-B.
-              Be aware that the new name takes effect immediately, and will be associated with all harvested usage
-              data that may have been collected using the OLD name (data is stored by the ID, not the name.)
-            </p>
-            <p>
-              For these reasons, use caution when using this import function. Generating a Platform export FIRST will
-              supply detailed instructions for importing on the "How to Import" tab. Generating a new Platform export
-              AFTER an import operation is a good way to confirm that all the settings are as-desired.
-            </p>
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-col class="d-flex">
-            <v-btn x-small color="primary" type="submit" @click="providerImportSubmit">Run Import</v-btn>
-          </v-col>
-          <v-col class="d-flex">
-            <v-btn class='btn' x-small type="button" color="primary" @click="providerImportDialog=false">Cancel</v-btn>
-          </v-col>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
--->
     <v-dialog v-model="provDialog" content-class="ccplus-dialog">
         <v-container grid-list-sm>
           <v-form v-model="formValid">
@@ -294,6 +249,7 @@
           { text: 'Abbrev', value: 'abbrev', align: 'start' },
           { text: 'Platform Name', value: 'name', align: 'start' },
           { text: 'Content Provider', value: 'content_provider', align: 'start' },
+          { text: 'Harvest Day', value: 'day_of_month', align: 'center' },
           { text: 'Connected Instances', value: 'connection_count', align: 'center' },
           { text: 'Last Updated', value: 'updated', align: 'start' },
           { text: '', value: 'action', sortable: false },
@@ -751,9 +707,9 @@
             });
             this.$store.dispatch('updateDatatableOptions',this.mutable_options);
         },
-        doExport () {
-            window.location.assign('/global/providers/export/xlsx');
-        },
+        // doExport () {
+        //     window.location.assign('/global/providers/export/xlsx');
+        // },
         goURL (target) { window.open(target, "_blank"); },
     },
     computed: {
