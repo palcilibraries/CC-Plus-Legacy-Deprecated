@@ -1010,9 +1010,8 @@ class HarvestLogController extends Controller
                               'Processing' => 'Processing', 'NoRetries' => "Out of Retries");
 
        // Get the harvests, by-status, that are not currently running (limit to 500 records)
-       $queue_status = array('Queued', 'Pending', 'Paused', 'ReQueued', 'Waiting');
        $all_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
-                             ->whereIn('status',$queue_status)
+                             ->whereIn('status',$displayStatus)
                              ->when(count($filters["reports"]) > 0, function ($qry) use ($filters) {
                                  return $qry->whereIn("report_id", $filters["reports"]);
                              })
