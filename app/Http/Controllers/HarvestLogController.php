@@ -632,7 +632,7 @@ class HarvestLogController extends Controller
        } catch (\Exception $e) {
            return response()->json(['result' => false, 'msg' => 'Error decoding input!']);
        }
-       if (!isset($input['id']) || !isset($input['status'])) {
+       if (!isset($input['ids']) || !isset($input['status'])) {
            return response()->json(['result' => false, 'msg' => 'Missing expected inputs!']);
        }
 
@@ -649,34 +649,58 @@ class HarvestLogController extends Controller
            return response()->json(['result' => false, 'msg' => 'Error: Corrupt session or consortium settings']);
        }
 
-       // Get the harvest, keep original status
-       $harvest = HarvestLog::findOrFail($input['id']);
-       $original_status = $harvest->status;
+       // Get and process the harvest(s)
+       $changed = 0;
+       $skipped = [];
+       $harvests = HarvestLog::with('sushiSetting','sushiSetting.institution','sushiSetting.provider')
+                             ->whereIn('id',$input['ids'])->get();
+       foreach ($harvests as $harvest) {
+           // keep track of original status
+           $original_status = $harvest->status;
 
-       // Setting Queued means attempts get set to zero
-       if ($input['status'] == 'Pause') {
-           $harvest->status = 'Paused';
-       // Setting Queued means attempts get set to zero
-       // Restart will reset attempts and create a SushiQueueJob if one does not exist
-       } else if ($input['status'] == 'ReStart') {
-           $sushiJob = SushiQueueJob::where('consortium_id',$con->id)->where('harvest_id',$harvest->id)->first();
-           if (!$sushiJob) {
-               try {
-                   $newjob = SushiQueueJob::create(['consortium_id' => $con->id,
-                                                    'harvest_id' => $harvest->id,
-                                                    'replace_data' => 1
-                                                  ]);
-               } catch (\Exception $e) {
-                   return response()->json(['result' => false, 'msg' => 'Error creating job entry in global table!']);
-               }
+           // Disallow ReStart on any harvest where sushi settings are not Enabled, or provider or institution are
+           // are not active
+           if ( ($input['status'] == 'ReStart') && ($harvest->sushiSetting->status != 'Enabled' ||
+                !$harvest->sushiSetting->institution->is_active || !$harvest->sushiSetting->provider->is_active) ) {
+               $skipped[] = $harvest->id;
+               continue;
            }
-           $harvest->attempts = 0;
-           $harvest->status = 'Queued';
+
+           // Setting Queued means attempts get set to zero
+           if ($input['status'] == 'Pause') {
+               $harvest->status = 'Paused';
+
+           // Setting Queued means attempts get set to zero
+           // Restart will reset attempts and create a SushiQueueJob if one does not exist
+           } else if ($input['status'] == 'ReStart') {
+               $sushiJob = SushiQueueJob::where('consortium_id',$con->id)->where('harvest_id',$harvest->id)->first();
+               if (!$sushiJob) {
+                   try {
+                       $newjob = SushiQueueJob::create(['consortium_id' => $con->id,
+                                                        'harvest_id' => $harvest->id,
+                                                        'replace_data' => 1
+                                                      ]);
+                   } catch (\Exception $e) {
+                       return response()->json(['result' => false, 'msg' => 'Error creating job entry in global table!']);
+                   }
+               }
+               $harvest->attempts = 0;
+               $harvest->status = 'Queued';
+           }
+
+           // Update the harvest record and return
+           $harvest->save();
+           $changed++;
        }
 
-       // Update the harvest record and return
-       $harvest->save();
-       return response()->json(['result' => true, 'status' => $harvest->status]);
+       // Return result
+       $msg_result = ($input['status'] == 'ReStart') ? "restarted" : "paused";
+       if (count($skipped) == 0) {
+          $msg = "Selected harvests successfully " . $msg_result . ".";
+       } else {
+          $msg = "Successfully  " . $msg_result . " " . $changed . " harvests, and skipped " . count($skipped) . " harvests.";
+       }
+       return response()->json(['result' => true, 'msg' => $msg, 'skipped' => $skipped]);
    }
 
   /**
