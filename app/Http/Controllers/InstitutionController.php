@@ -171,6 +171,24 @@ class InstitutionController extends Controller
             }
         }
 
+        // If requested, create a sushi-setting to give a "starting point" for connecting it later
+        $stub = (isset($input['sushi_stub'])) ? $input['sushi_stub'] : 0;
+        if ($stub) {
+            $providers = Provider::with('globalProv')->where('inst_id',1)->where('is_active',1)->get();
+            foreach ($providers as $provider) {
+                if ($provider->globalProv->is_active == 0) continue;
+                $sushi_setting = new SushiSetting;
+                $sushi_setting->inst_id = $new_id;
+                $sushi_setting->prov_id = $provider->global_id;
+                // Mark required conenction fields
+                foreach ($provider->globalProv->connectionFields() as $cnx) {
+                    $sushi_setting->{$cnx['name']} = ($cnx['required']) ? "-required-" : null;
+                }
+                $sushi_setting->status = "Incomplete";
+                $sushi_setting->save();
+            }
+        }
+
         // Setup a return object that matches what index does (above)
         $data = Institution::where('id', $new_id)->get(['id','name','is_active'])->first()->toArray();
         $data['groups'] = rtrim(trim($_groups), ',');
