@@ -392,11 +392,12 @@
             this.success = "";
             this.failure = "";
             let msg = "";
-            msg = "Bulk processing will proceed through each requested harvest sequentially.";
+            msg = "Bulk processing will proceed for all requested harvests and reload the list.";
             if (this.bulkAction == 'Pause') {
                 msg += "<br>Paused Harvests will remain in the harvesting queue, but will be ignored while Paused.";
             } else if (this.bulkAction == 'ReStart') {
-                msg += "<br>Only Paused Harvests will restarted, any other selected harvests will be ignored.";
+                msg += "<br>Only Paused Harvests will restarted. Harvests related to inactive institutions or platforms, or with";
+                msg += " disabled or suspended Sushi credentials will be unchanged.";
             } else if (this.bulkAction == 'Kill') {
                 msg += "Deleting the selected harvest records is not reversible, and harvested data will not be affected.";
                 msg += " <br><br><strong>NOTE:</strong> all failure/warning records related to this harvest will also be deleted.";
@@ -432,24 +433,20 @@
                   })
                   .catch({});
                 } else {  // Pause/Resume
-                    this.selectedRows.forEach(harvest => {
-                        axios.post('/update-harvest-status', { id: harvest.id, status: this.bulkAction })
-                        .then( (response) => {
-                          if (response.data.result) {
-                            var harvIdx = this.harvest_jobs.findIndex(h=>h.id===harvest.id);
-                            this.harvest_jobs[harvIdx].status = response.data.status;
-                            this.harvest_jobs[harvIdx].dStatus = (response.data.status == 'Paused') ? "Paused" : "Queued";
-                          } else {
-                            this.failure = response.data.msg;
-                            return false;
-                          }
-                        })
-                        .catch(error => {});
-                    });
-                    if (this.failure == '') this.success = "Selected harvests successfully updated.";
+                  let _harvests = this.selectedRows.map( h => h.id);
+                  axios.post('/update-harvest-status', { ids: _harvests, status: this.bulkAction })
+                  .then( (response) => {
+                    if (response.data.result) {
+                      this.success = response.data.msg
+                      // reload the table, include filter options
+                      this.updateRecords();
+                    } else {
+                      this.failure = response.data.msg;
+                      return false;
+                    }
+                  }).catch(error => {});
                 }
               }
-              this.dtKey += 1;           // force re-render of the datatable
               this.bulkAction = '';
           })
           .catch({});
