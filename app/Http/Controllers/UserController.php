@@ -562,6 +562,7 @@ class UserController extends Controller
         // $users_sheet->setCellValue('H1', 'PWChangeReq');
         if ($thisUser->hasRole('Admin')) {
             $users_sheet->setCellValue('H1', 'Institution ID');
+            $users_sheet->setCellValue('I1', 'LEAVE BLANK');
             $users_sheet->setCellValue('J1', 'Institution');
         }
         $row = 2;

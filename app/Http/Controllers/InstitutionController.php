@@ -616,6 +616,7 @@ class InstitutionController extends Controller
         $inst_sheet->setCellValue('E1', 'FTE');
         $inst_sheet->setCellValue('F1', 'Group IDs');
         $inst_sheet->setCellValue('G1', 'Notes');
+        $inst_sheet->setCellValue('H1', 'LEAVE BLANK');
         $inst_sheet->setCellValue('I1', 'Group Names');
         $row = 2;
 

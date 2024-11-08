@@ -726,8 +726,8 @@ class ProviderController extends Controller
         $top_txt  = "The Providers tab represents a starting place for updating or importing settings. The table\n";
         $top_txt .= "below describes the datatype and order that the import expects. Any Import rows without a global provider\n";
         $top_txt .= "ID value in column A and a valid Institution ID column B will be ignored. If values are missing or invalid\n";
-        $top_txt .= "for columns (B-H), but not required, they will be set to the 'Default'.\n\n";
-        $top_txt .= "Any header row or columns beyond 'H' will be ignored. Once the data sheet contains everything\n";
+        $top_txt .= "for columns (B-F), but not required, they will be set to the 'Default'.\n\n";
+        $top_txt .= "Any header row or columns beyond 'F' will be ignored. Once the data sheet contains everything\n";
         $top_txt .= "to be updated or inserted, save the sheet as a CSV and import it into CC-Plus.";
         $info_sheet->setCellValue('A1', $top_txt);
         $info_sheet->getStyle('A8')->applyFromArray($leftbold_style);
@@ -793,6 +793,7 @@ class ProviderController extends Controller
         $providers_sheet->setCellValue('D1', 'Active');
         $providers_sheet->setCellValue('E1', 'Inst-Specific');
         $providers_sheet->setCellValue('F1', 'Master Reports');
+        $providers_sheet->setCellValue('G1', 'LEAVE BLANK');
         $providers_sheet->setCellValue('H1', 'Institution Name');
         $providers_sheet->setCellValue('I1', 'Report Names');
         $row = 2;
