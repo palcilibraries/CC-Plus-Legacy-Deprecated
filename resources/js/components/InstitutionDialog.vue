@@ -12,8 +12,17 @@
         <v-col class="d-flex justify-center" cols="8">
           <v-text-field v-model="form.local_id" label="Internal Identifier" outlined dense :readonly="!is_admin"></v-text-field>
         </v-col>
-        <v-col class="d-flex justify-center" cols="4">
+        <v-col v-if="dtype=='edit'" class="d-flex justify-center" cols="4">
           <v-switch v-model="form.is_active" label="Active?" dense :readonly="!is_admin"></v-switch>
+        </v-col>
+      </v-row>
+      <v-row v-if="dtype=='create'" class="d-flex mx-2" no-gutters>
+        <v-col class="d-flex px-2" cols="3">
+          <v-switch v-model="form.is_active" label="Active?" dense :readonly="!is_admin"></v-switch>
+        </v-col>
+        <v-col v-if="form.is_active" class="d-flex px-2 justify-left" cols="9">
+          <v-switch v-model="form.sushi_stub" label="Create Sushi entries for consortium providers?" dense
+          ></v-switch>
         </v-col>
       </v-row>
       <v-row class="d-flex mx-2" no-gutters>
@@ -71,6 +80,7 @@
             is_active: 1,
             fte: 0,
             institution_groups: [],
+            sushi_stub: 1,
             notes: '',
         }),
       }
@@ -85,6 +95,8 @@
                     this.$emit('inst-complete', { result:_result, msg:response.msg, inst:_inst });
             });
           } else {
+            // force sushi_stub off if is_active is off
+            if (this.form.is_active == 0) this.form.sushi_stub = 0;
             this.form.post('/institutions')
                 .then( (response) => {
                     var _inst   = (response.result) ? response.institution : null;
