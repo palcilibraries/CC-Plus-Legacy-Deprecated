@@ -480,9 +480,11 @@
             let msg = "";
             msg = "Bulk processing will proceed through each requested harvest sequentially.";
             msg += "<br><br>";
-            if (this.bulkAction == 'Restart') {
+            if (this.bulkAction == 'ReStart') {
                 msg += "Restarting the selected harvests will reset the attempts counters to zero and";
                 msg += " immediately add the harvests to the processing queue.";
+                msg += "<br><strong>NOTE: </strong>Harvests related to inactive institutions or platforms, or with";
+                msg += " disabled or suspended Sushi credentials will be skipped and will not restart.";
             } else if (this.bulkAction == 'Delete') {
                 msg += "Deleting the selected harvest records is not reversible!";
                 msg += "<br><br><strong>NOTE:<br /><font color='Red'>The stored data for the selected harvests and all related";
@@ -517,22 +519,22 @@
                   .catch({});
                 // Restarting will need their row removed from the datatable also... they will move to the Queued component
                 } else {
-                    this.selectedRows.forEach(harvest => {
-                      axios.post('/update-harvest-status', {
-                                 id: harvest.id,
-                                 status: this.bulkAction
-                      })
-                      .then( (response) => {
-                        if (response.data.result) {
-                          this.$emit('restarted-harvest');
-                          this.mutable_harvests.splice(this.mutable_harvests.findIndex(h=>h.id===harvest.id),1);
-                        } else {
-                          this.failure = response.data.msg;
-                          return false;
-                        }
-                      }).catch(error => {});
-                    });
-                    if (this.failure == '') this.success = "Selected harvests successfully updated.";
+                    let _harvests = this.selectedRows.map( h => h.id);
+                    axios.post('/update-harvest-status', { ids: _harvests, status: this.bulkAction })
+                    .then( (response) => {
+                      if (response.data.result) {
+                        this.success = response.data.msg
+                        // Remove (unskipped) harvests from selectedRows and mutable_harvests
+                        _harvests.filter( _id => !response.data.skipped.includes(_id)).forEach( m_id => {
+                            this.selectedRows.splice(this.selectedRows.findIndex(h => h.id === m_id),1);
+                            this.mutable_harvests.splice(this.mutable_harvests.findIndex(h => h.id === m_id),1);
+                        });
+                        this.$emit('restarted-harvest');
+                      } else {
+                        this.failure = response.data.msg;
+                        return false;
+                      }
+                    }).catch(error => {});
                 }
               }
               this.dtKey += 1;           // force re-render of the datatable
