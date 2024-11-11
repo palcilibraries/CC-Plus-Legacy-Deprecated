@@ -10,7 +10,7 @@
     </v-row>
     <v-row class="d-flex mb-1 align-end" no-gutters>
       <v-col v-if="title != ''" class="d-flex px-1">
-        <h3>{{ $title }}</h3>
+        <h3>{{ title }}</h3>
       </v-col>
     </v-row>
     <div class="d-flex flex-row mb-2">
@@ -450,7 +450,7 @@
                     let items = response.data.usage;
                     resolve({items});
                     // update database filter options if they cam back with the data
-                    if (typeof(response.data.db_optiosn)!='undefined') {
+                    if (typeof(response.data.db_options)!='undefined') {
                         this.mutable_filter_options['database'] = [ ...response.data.db_options ];
                     }
                     this.loading = false;
