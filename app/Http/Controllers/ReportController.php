@@ -760,6 +760,46 @@ class ReportController extends Controller
             $sortBy = ($request->sortBy != '') ? $request->sortBy : 'platform';
         }
 
+        // Generate database filter-options for DR report
+        if ($master_name == "DR") {
+          $db_options = DB::table($report_table)
+                       ->join($global_db . '.databases as DB', 'DR.db_id', 'DB.id')
+                       ->when($limit_to_insts, function ($query, $limit_to_insts) use ($master_name) {
+                           return $query->whereIn($master_name . '.inst_id', $limit_to_insts);
+                       })
+                       ->when($limit_to_provs, function ($query, $limit_to_provs) use ($master_name) {
+                           return $query->whereIn($master_name . '.prov_id', $limit_to_provs);
+                       })
+                       ->when($limit_to_dbase, function ($query, $limit_to_dbase) use ($master_name) {
+                           return $query->whereIn($master_name . '.db_id', $limit_to_dbase);
+                       })
+                       ->when($limit_to_plats, function ($query, $limit_to_plats) use ($master_name) {
+                           return $query->whereIn($master_name . '.plat_id', $limit_to_plats);
+                       })
+                       ->when($limit_to_dtype, function ($query, $limit_to_dtype) use ($master_name) {
+                           return $query->whereIn($master_name . '.datatype_id', $limit_to_dtype);
+                       })
+                       ->when($limit_to_atype, function ($query, $limit_to_atype) use ($master_name) {
+                           return $query->whereIn($master_name . '.accesstype_id', $limit_to_atype);
+                       })
+                       ->when($limit_to_ameth, function ($query, $limit_to_ameth) use ($master_name) {
+                           return $query->whereIn($master_name . '.accessmethod_id', $limit_to_ameth);
+                       })
+                       ->when($limit_to_stype, function ($query, $limit_to_stype) use ($master_name) {
+                           return $query->whereIn($master_name . '.sectiontype_id', $limit_to_stype);
+                       })
+                       ->when(self::$input_filters['yop'], function ($query) {
+                           return $query->whereBetween('yop', self::$input_filters['yop']);
+                       })
+                       ->when($ignore_zeros && $raw_where, function ($query) use ($raw_where) {
+                           return $query->whereRaw($raw_where);
+                       })
+                       ->when(sizeof($conditions) > 0, function ($query) use ($conditions) {
+                           return $query->where($conditions);
+                       })
+                       ->selectRaw("distinct DB.id,DB.name")
+                       ->get();
+        }
         // Run the query for "COUNTER" formatted output
         if ($format == "COUNTER") {
             $conditions[] = array('RF.is_metric',1);
@@ -851,46 +891,6 @@ class ReportController extends Controller
                 });
         // Run the query for the "Compact" format
         } else {
-            // Generate database filter-options for DR report
-            if ($master_name == "DR") {
-              $db_options = DB::table($report_table)
-                           ->join($global_db . '.databases as DB', 'DR.db_id', 'DB.id')
-                           ->when($limit_to_insts, function ($query, $limit_to_insts) use ($master_name) {
-                               return $query->whereIn($master_name . '.inst_id', $limit_to_insts);
-                           })
-                           ->when($limit_to_provs, function ($query, $limit_to_provs) use ($master_name) {
-                               return $query->whereIn($master_name . '.prov_id', $limit_to_provs);
-                           })
-                           ->when($limit_to_dbase, function ($query, $limit_to_dbase) use ($master_name) {
-                               return $query->whereIn($master_name . '.db_id', $limit_to_dbase);
-                           })
-                           ->when($limit_to_plats, function ($query, $limit_to_plats) use ($master_name) {
-                               return $query->whereIn($master_name . '.plat_id', $limit_to_plats);
-                           })
-                           ->when($limit_to_dtype, function ($query, $limit_to_dtype) use ($master_name) {
-                               return $query->whereIn($master_name . '.datatype_id', $limit_to_dtype);
-                           })
-                           ->when($limit_to_atype, function ($query, $limit_to_atype) use ($master_name) {
-                               return $query->whereIn($master_name . '.accesstype_id', $limit_to_atype);
-                           })
-                           ->when($limit_to_ameth, function ($query, $limit_to_ameth) use ($master_name) {
-                               return $query->whereIn($master_name . '.accessmethod_id', $limit_to_ameth);
-                           })
-                           ->when($limit_to_stype, function ($query, $limit_to_stype) use ($master_name) {
-                               return $query->whereIn($master_name . '.sectiontype_id', $limit_to_stype);
-                           })
-                           ->when(self::$input_filters['yop'], function ($query) {
-                               return $query->whereBetween('yop', self::$input_filters['yop']);
-                           })
-                           ->when($ignore_zeros && $raw_where, function ($query) use ($raw_where) {
-                               return $query->whereRaw($raw_where);
-                           })
-                           ->when(sizeof($conditions) > 0, function ($query) use ($conditions) {
-                               return $query->where($conditions);
-                           })
-                           ->selectRaw("distinct DB.id,DB.name")
-                           ->get();
-            }
             $records = DB::table($report_table)
                       ->when($master_name == "TR", function ($query, $join) use ($master_name, $global_db) {
                           return $query->join($global_db . '.titles as TI', $master_name . '.title_id', 'TI.id');
@@ -971,7 +971,8 @@ class ReportController extends Controller
         }
         // If not exporting, return the records as JSON
         if ($runtype != 'export') {
-            if ($master_name == "DR" && $format == 'Compact') {
+            // if ($master_name == "DR" && $format == 'Compact') {
+            if ($master_name == "DR") {
                 return response()->json(['usage' => $records, 'db_options' => $db_options], 200);
             } else {
                 return response()->json(['usage' => $records], 200);
