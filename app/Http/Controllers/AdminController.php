@@ -98,6 +98,7 @@ class AdminController extends Controller
                     if ($rec->inst_id == null && $rec->connection_count == 1) {
                         $rec->inst_id = $prov_data->inst_id;
                     }
+                    $_rec['day_of_month'] = $rec->day_of_month;
                     $_rec['inst_name'] = ($prov_data->inst_id == 1) ? 'Consortium' : $prov_data->institution->name;
                     $_rec['inst_stat'] = ($prov_data->institution->is_active) ? "isActive" : "isInactive";
                     $_inst_reports = $prov_data->reports->pluck('id')->toArray();
