@@ -316,6 +316,7 @@ class InstitutionController extends Controller
                 $combined_ids = array_unique(array_merge($conso_reports, $_inst_reports));
                 $_rec['master_reports'] = $rec->master_reports;
                 $_rec['report_state'] = $this->reportState($master_reports, $conso_reports, $combined_ids);
+                $_rec['day_of_month'] = $rec->day_of_month;
                 // last harvest is based on THIS INST ($id) sushisettings
                 $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
                 $_rec['last_harvest'] = ($_setting) ? $_setting->last_harvest : null;
