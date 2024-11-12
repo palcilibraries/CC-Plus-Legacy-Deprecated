@@ -63,6 +63,14 @@
           <v-switch v-model="form.allow_inst_specific" dense label="Local Admins Can Harvest Additional Reports"></v-switch>
         </v-col>
       </v-row>
+      <v-row class="d-flex ma-0 align-center" no-gutters>
+        <v-col class="d-flex px-6" cols="6">Harvests Monthly on Day : </v-col>
+        <v-col class="d-flex px-4" cols="2">
+          <v-text-field v-model="mutable_provider.day_of_month" label="Day-of-Month" single-line dense type="number"
+                        class="centered-input" disabled
+          ></v-text-field>
+        </v-col>
+      </v-row>
       <v-row class="d-flex mx-2 my-0" no-gutters>
         <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-6 justify-center" cols="12">
           <span v-if="!this.reportsEnabled"><strong>Reports to Harvest</strong> (at least one is required)</span>
