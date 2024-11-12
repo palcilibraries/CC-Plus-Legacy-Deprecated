@@ -763,6 +763,7 @@
                   if (new_cnx) this.updateHeaders();
                   this.dtKey += 1;
               } else if (result == 'Updated') {
+                  this.success = msg;
                   Object.assign(this.settings[this.settings.findIndex(s => s.id == setting.id)],setting);
                   this.dtKey += 1;
               } else if (result == 'Fail') {
