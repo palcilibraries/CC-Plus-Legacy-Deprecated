@@ -291,7 +291,7 @@ class SushiSettingController extends Controller
         $setting = SushiSetting::with('institution','provider')->where('id',$id)->first();
 
         // If setting exists, confirm authorization for inst and provider
-        $fields = array_except($input,array('global_id'));
+        $fields = array_except($input,array('global_id','report_state'));
         if ($setting) {
             // Confirm global provider exists
             $provider = GlobalProvider::findOrFail($setting->prov_id);
