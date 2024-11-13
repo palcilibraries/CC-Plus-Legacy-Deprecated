@@ -306,6 +306,11 @@ class SushiQHarvester extends Command
                             $job->harvest->attempts++;
                             $job->harvest->error_id = $sushi->error_code;
                         }
+                        // Keep track last successful for this sushisetting
+                        if ($yearmon != $setting->last_harvest) {
+                            $setting->last_harvest = $yearmon;
+                            $setting->save();
+                        }
 
                    // If request is pending (in a provider queue, not a CC+ queue), just set harvest status
                    // the record updates when we fall out of the remaining if-else blocks
@@ -348,11 +353,6 @@ class SushiQHarvester extends Command
                     if ($valid_report) {
                         $this->line($ts . " QueueHarvester: " . $setting->provider->name . " : " . $yearmon . " : " .
                                           $report->name . " saved for " . $setting->institution->name);
-                       // Keep track last successful for this sushisetting
-                        if ($yearmon != $setting->last_harvest) {
-                            $setting->last_harvest = $yearmon;
-                            $setting->update();
-                        }
                         $job->harvest->error_id = 0;
                         $job->harvest->attempts++;
                         $job->harvest->status = "Waiting";
