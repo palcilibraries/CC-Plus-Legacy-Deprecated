@@ -8,6 +8,10 @@
       <v-col class="d-flex align-center" cols="3">
         <v-btn class='btn' small type="button" @click="clearAllFilters()">Clear Filters</v-btn>
       </v-col>
+      <v-col class="d-flex px-2" cols="3">
+        <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" single-line hide-details clearable
+        ></v-text-field>
+      </v-col>
     </v-row>
     <v-row no-gutters>
       <v-col v-if="is_admin" class="d-flex px-2 align-center" cols="2">
@@ -184,7 +188,8 @@
     </div>
     <v-data-table v-if='is_admin || is_manager' v-model="selectedRows" :headers="headers" :items="mutable_harvests"
                   :loading="loading" show-select item-key="id" :options="mutable_dt_options" @update:options="updateOptions"
-                  :footer-props="footer_props" :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey">
+                  :footer-props="footer_props" :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey"
+                  :search="search">
       <template v-slot:item.prov_name="{ item }">
         <span v-if="item.prov_inst_id==1">
           <v-icon title="Consortium Platform">mdi-account-multiple</v-icon>&nbsp;
@@ -195,6 +200,9 @@
         <span v-if="item.rawfile!=null">{<a title="Downloaded JSON" :href="'/harvests/'+item.id+'/raw'">{{ item.id }}</a>}</span>
         <span v-else>{{ item.id }}</span>
         <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)" color="#3686B4">mdi-barley</v-icon>
+      </template>
+      <template v-slot:item.prov_name="{ item }">
+        {{ item.prov_name.substr(0,63) }}
       </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
@@ -253,6 +261,9 @@
           </div>
         </td>
       </template>
+      <v-alert slot="no-results" :value="true" color="error" icon="warning">
+        Your search for "{{ search }}" found no results.
+      </v-alert>
     </v-data-table>
     <v-data-table v-else :headers="headers" :items="mutable_harvests" :loading="loading" item-key="id"
                   :options="mutable_dt_options" @update:options="updateOptions" :footer-props="footer_props">
@@ -264,6 +275,9 @@
       </template>
       <template v-slot:item.updated="{ item }">
         {{ item.updated.substr(0,10) }}
+      </template>
+      <template v-slot:item.prov_name="{ item }">
+        {{ item.prov_name.substr(0,63) }}
       </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
@@ -326,6 +340,7 @@
         failure: '',
         loading: false,
         update_button: "Display Records",
+        search: '',
       }
     },
     watch: {
