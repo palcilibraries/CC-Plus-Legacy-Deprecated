@@ -47,7 +47,7 @@
       <!-- Providers -->
       <v-expansion-panel>
   	    <v-expansion-panel-header>
-          <h2>Providers</h2>
+          <h2>Platforms</h2>
   	    </v-expansion-panel-header>
   	    <v-expansion-panel-content>
           <provider-data-table :key="provKey" :providers="mutable_providers" :institutions="mutable_institutions"
@@ -109,6 +109,7 @@
           });
           this.instKey += 1;
           this.groupKey += 1;
+          this.sushiKey += 1;
         }
       },
       dropInst (instId) {

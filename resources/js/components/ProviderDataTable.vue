@@ -7,11 +7,11 @@
     <v-row class="d-flex mt-2" no-gutters>
       <v-col class="d-flex" cols="3">&nbsp;</v-col>
       <v-col class="d-flex px-1" cols="3">
-        <v-btn small color="primary" @click="providerImportForm">Import Providers</v-btn>
+        <v-btn small color="primary" @click="providerImportForm">Import Platforms</v-btn>
       </v-col>
       <v-col class="d-flex px-1" cols="3">
         <a @click="doProvExport">
-          <v-icon title="Export to Excel">mdi-microsoft-excel</v-icon>&nbsp; Export Providers to Excel
+          <v-icon title="Export to Excel">mdi-microsoft-excel</v-icon>&nbsp; Export Platforms to Excel
         </a>
       </v-col>
       <v-col class="d-flex px-2 " cols="3">
@@ -46,13 +46,13 @@
             <v-icon large color="green" title="Active" @click="changeStatus(item.id,0)">mdi-toggle-switch</v-icon>
           </span>
           <span v-else-if="!item.can_edit && item.is_active">
-            <v-icon large color="green" title="Active Consortium Provider">mdi-toggle-switch</v-icon>
+            <v-icon large color="green" title="Active Consortium Platform">mdi-toggle-switch</v-icon>
           </span>
           <span v-if="item.can_edit && !item.is_active">
             <v-icon large color="red" title="Inactive" @click="changeStatus(item.id,1)">mdi-toggle-switch-off</v-icon>
           </span>
           <span v-else-if="!item.can_edit && !item.is_active">
-            <<v-icon large color="red" title="Inactive Consortium Provider">mdi-toggle-switch</v-icon>
+            <<v-icon large color="red" title="Inactive Consortium Platform">mdi-toggle-switch</v-icon>
           </span>
         </div>
         <div v-else-if="item.can_edit && item.inst_id!=null">
@@ -64,14 +64,14 @@
           </span>
         </div>
         <div v-else>
-          <span v-if="item.is_active"><v-icon large color="green" title="Active Global Provider">mdi-toggle-switch</v-icon></span>
-          <span v-else><v-icon large color="red" title="Inactive Global Provider">mdi-toggle-switch</v-icon></span>
+          <span v-if="item.is_active"><v-icon large color="green" title="Active Global Platform">mdi-toggle-switch</v-icon></span>
+          <span v-else><v-icon large color="red" title="Inactive Global Platform">mdi-toggle-switch</v-icon></span>
         </div>
       </template>
       <template v-slot:item.name="{ item }">
         <span>
-          <v-icon v-if="item.is_conso" title="Consortium Provider">mdi-account-multiple</v-icon>
-          <v-icon v-else-if="item.inst_id>1" title="Institutional Provider">mdi-home-outline</v-icon>
+          <v-icon v-if="item.is_conso" title="Consortium Platform">mdi-account-multiple</v-icon>
+          <v-icon v-else-if="item.inst_id>1" title="Institutional Platform">mdi-home-outline</v-icon>
         </span>
         <span v-if="item.is_active==0" class="isInactive">
           {{ item.name }}
@@ -125,19 +125,19 @@
       <template v-slot:item.action="{ item }">
         <span class="dt_action">
           <v-btn v-if="item.can_connect" icon @click="connectProvider(item.id)">
-            <v-icon title="Connect Provider">mdi-connection</v-icon>
+            <v-icon title="Connect Platform">mdi-connection</v-icon>
           </v-btn>
           <v-btn v-if="item.can_edit" icon @click="editProvider(item.id)">
-            <v-icon title="Edit Provider">mdi-cog-outline</v-icon>
+            <v-icon title="Edit Platform">mdi-cog-outline</v-icon>
           </v-btn>
           <v-btn v-else icon><v-icon color="#c9c9c9">mdi-cog-outline</v-icon></v-btn>
           <v-btn v-if="item.can_delete" icon @click="destroy(item.id)">
-            <v-icon title="Disconnect Provider">mdi-trash-can-outline</v-icon>
+            <v-icon title="Disconnect Platform">mdi-trash-can-outline</v-icon>
           </v-btn>
           <v-btn v-else icon>
-            <v-icon v-if="item.last_harvest!=null" title="Provider Has Harvests" color="#c9c9c9">mdi-trash-can-outline</v-icon>
-            <v-icon v-else-if="item.connection_count==0" title="Global Provider" color="#c9c9c9">mdi-trash-can-outline</v-icon>
-            <v-icon v-else-if="!is_admin && item.is_conso" title="Consortium Provider" color="#c9c9c9">mdi-trash-can-outline</v-icon>
+            <v-icon v-if="item.last_harvest!=null" title="Platform Has Harvests" color="#c9c9c9">mdi-trash-can-outline</v-icon>
+            <v-icon v-else-if="item.connection_count==0" title="Global Platform" color="#c9c9c9">mdi-trash-can-outline</v-icon>
+            <v-icon v-else-if="!is_admin && item.is_conso" title="Consortium Platform" color="#c9c9c9">mdi-trash-can-outline</v-icon>
             <v-icon v-else color="#c9c9c9">mdi-trash-can-outline</v-icon>
           </v-btn>
         </span>
@@ -148,7 +148,7 @@
     </v-data-table>
     <v-dialog v-model="providerImportDialog" max-width="1200px">
       <v-card>
-        <v-card-title>Import Providers</v-card-title>
+        <v-card-title>Import Platforms</v-card-title>
         <v-spacer></v-spacer>
         <v-card-text>
           <v-container grid-list-md>
@@ -156,25 +156,25 @@
             ></v-file-input>
             <v-col class="d-flex justify-center" cols="8">
               <strong>Note: &nbsp;</strong><br />
-              Provider imports function exclusively as Updates. No existing provider records will be deleted.<br />
-              Providers assigned to  Institution ID: 1 are, by convention, consortium-wide providers.
+              Platform imports function exclusively as Updates. No existing platform records will be deleted.<br />
+              Platforms assigned to  Institution ID: 1 are, by convention, consortium-wide platform.
             </v-col>
             <p>
-              The import process evaluates input rows to determine if a row defines an existing, or new, provider.
-              A match for an existing provider depends on matching a Global Provider ID in column-A, and a
+              The import process evaluates input rows to determine if a row defines an existing, or new, platform.
+              A match for an existing platform depends on matching a Global Platform ID in column-A, and a
               valid Institutional ID in column-B. If these are not found, the record is ignored. If an existing
-              provider is found for the Global-Id and Insitution-ID, that provider is updated. If no provider exists
-              for the Global/Institution pair, a NEW provider entry will be created.
+              platform is found for the Global-Id and Insitution-ID, that platform is updated. If no platform exists
+              for the Global/Institution pair, a NEW platform entry will be created.
             </p>
             <p>
-              Providers can be renamed via import by providing a Global Provider ID in column-A, the corresponding
+              Platforms can be renamed via import by providing a Global Platform ID in column-A, the corresponding
               Institution ID in column-B and a replacement name in column-C. Be aware that the new name takes effect
               immediately, and will be associated with all harvested usage data that may have been collected using
               the OLD name (data is stored by the System ID, not the name.)
             </p>
             <p>
-              For these reasons, use caution when using this import function. Generating an Provider export FIRST
-              will supply detailed instructions for importing on the "How to Import" tab. Generating a new Provider
+              For these reasons, use caution when using this import function. Generating an Platform export FIRST
+              will supply detailed instructions for importing on the "How to Import" tab. Generating a new Platform
               export AFTER an import operation is a good way to confirm that all the settings are as-desired.
             </p>
           </v-container>
@@ -229,7 +229,7 @@
         headers: [
           { text: 'Status', value: 'active'},
           { text: 'Abbrev ', value: 'abbrev', align: 'start' },
-          { text: 'Provider ', value: 'name', align: 'start' },
+          { text: 'Platform ', value: 'name', align: 'start' },
           { text: 'Content Provider', value: 'content_provider', align: 'start' },
           { text: 'PR', value: 'PR_status', width: '16px', align: 'center' },
           { text: 'DR', value: 'DR_status', width: '16px', align: 'center' },
@@ -381,24 +381,24 @@
             var Action = this.bulkAction;
             var Context = this.inst_context;
             var Rows = [...this.selectedRows];
-            let msg = "Bulk processing will process each requested provider sequentially.<br><br>";
+            let msg = "Bulk processing will process each requested platform sequentially.<br><br>";
             if (Action=='Set Active') {
-                msg += "Activating these providers also enable related SUSHI connections, if possible. SUSHI connection<br/>";
+                msg += "Activating these platforms also enable related SUSHI connections, if possible. SUSHI connection<br/>";
                 msg += "status will be automatically set based on the completeness of the credentials and the active/inactive ";
                 msg += "state of any connected institution(s).";
             } else if (Action=='Set Inactive') {
-                msg += "Deactivating these providers will stop all future automated harvesting. Any pending or queued<br />";
+                msg += "Deactivating these platforms will stop all future automated harvesting. Any pending or queued<br />";
                 msg += "harvesting jobs will not be affected. Any related and SUSHI credentials will be set to 'Suspended'.";
             } else if (Action=='Connect') {
-                msg += "Connecting these providers will add an empty set of SUSHI credentials for each row, and the<br/>";
+                msg += "Connecting these platforms will add an empty set of SUSHI credentials for each row, and the<br/>";
                 msg += "credential(s) will be flagged as 'Incomplete'. Until the required credentials are defined, no report<br />";
-                msg += "retrieval will be performed by the CC-Plus automated harvesting system.<br />Connecting providers";
-                msg += " in-bulk will also enable a single report-assignment (PR/DR/...) for each provider.<br />"
-                msg += "Note that any providers already connected will be skipped.";
+                msg += "retrieval will be performed by the CC-Plus automated harvesting system.<br />Connecting platforms";
+                msg += " in-bulk will also enable a single report-assignment (PR/DR/...) for each platform.<br />"
+                msg += "Note that any platforms already connected will be skipped.";
             } else if (Action=='Disconnect') {
-                msg += "CAUTION!!<br />Disconnecting provider records cannot be reversed!! Providers with harvested data<br />";
+                msg += "CAUTION!!<br />Disconnecting platform records cannot be reversed!! Platforms with harvested data<br />";
                 msg += "will NOT be changed.<br />";
-                msg += " NOTE: ALL SUSHI credentials associated with the selected providers will also be deleted!";
+                msg += " NOTE: ALL SUSHI credentials associated with the selected platforms will also be deleted!";
             } else {
                 this.failure = "Unrecognized Bulk Action in processBulk!";
                 return;
@@ -443,7 +443,7 @@
                       bulk_count += 1;
                     }
                   }
-                  this.success  = "Selected providers: "+bulk_count+" successfully disconnected";
+                  this.success  = "Selected platform(s): "+bulk_count+" successfully disconnected";
                   this.success += (skip_count>0) ? " ("+skip_count+" skipped)" : "";
                   this.selectedRows = [];
                   this.dtKey += 1;           // update the datatable
@@ -474,7 +474,7 @@
                       bulk_count += 1;
                     }
                   }
-                  this.success  = "Selected providers: " + bulk_count + " successfully connected";
+                  this.success  = "Selected platform(s): " + bulk_count + " successfully connected";
                   this.success += (skip_count>0) ? " ("+skip_count+" skipped)" : "";
                   this.selectedRows = [];
                   this.dtKey += 1;           // update the datatable
@@ -504,7 +504,7 @@
                            bulk_count += 1;
                     }
                   }
-                  this.success  = "Selected providers: "+bulk_count+" successfully updated";
+                  this.success  = "Selected platform(s): "+bulk_count+" successfully updated";
                   this.success += (skip_count>0) ? " ("+skip_count+" skipped)" : "";
                   this.selectedRows = [];
                   this.dtKey += 1;           // update the datatable
@@ -575,29 +575,29 @@
                cnxIdx = 0;
             }
             if (cnxIdx<0 && !this.is_admin) {
-                this.failure = 'Error accessing provider data, a full page refresh is worth trying. May be a code problem.';
+                this.failure = 'Error accessing platform data, a full page refresh is worth trying. May be a code problem.';
                 return;
             }
             // set provider to the target connected provider
             var provider = Object.assign({},_prov.connected[cnxIdx]);
             // setup the popup
-            let notice = "Disconnecting a provider cannot be reversed, only manually reconnected."+
-                         " Because this provider has no harvested usage data, it can be removed.";
+            let notice = "Disconnecting a platform cannot be reversed, only manually reconnected."+
+                         " Because this platform has no harvested usage data, it can be removed.";
             let _notes = "<br /><font color='red'><strong>NOTE:</strong>";
             let _title = "Are you sure?";
             if ( this.is_admin) {
               if (provider.inst_id==1) {
-                  _notes += "<br /><strong>This is a consortium-wide provider</strong>"+
+                  _notes += "<br /><strong>This is a consortium-wide platform</strong>"+
                             " Deleting it will remove ALL related SUSHI credentials consortium-wide.";
               }
               if ( _prov.connection_count > 1) {
                 var _count = (this.inst_context==1) ? _prov.connection_count : "ALL";
-                _title = "You are about to delete "+_count+" provider definitions related to this provider!";
-                _notes += "<br /><strong>All related institution-specific definitions for this provider"+
+                _title = "You are about to delete "+_count+" platform definitions related to this platform!";
+                _notes += "<br /><strong>All related institution-specific definitions for this platform"+
                           " will also be deleted.</strong>";
               }
             } else {
-              _notes += "<br />All SUSHI credentials defined for this provider will also be removed.";
+              _notes += "<br />All SUSHI credentials defined for this platform will also be removed.";
             }
             _notes += "</font>";
             notice += _notes;
@@ -650,7 +650,7 @@
                            this.mutable_providers[provIdx]['report_state'] = {...this.empty_report_state};
                            this.$emit('change-prov', this.mutable_providers[provIdx]);
                        }
-                       this.success = 'Provider successfully disconnected';
+                       this.success = 'Platform successfully disconnected';
                        this.dtKey += 1;           // update the datatable
                      })
                      .catch({});

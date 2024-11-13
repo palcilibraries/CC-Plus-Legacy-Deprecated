@@ -65,7 +65,7 @@
                 <img v-if='filter_data["provider"].value.length > 0' src="/images/red-x-16.png"
                      alt="clear filter" @click="clearFilter('provider')"/>&nbsp;
                 <v-autocomplete :items='mutable_filter_options.provider' v-model='filter_data.provider.value' multiple
-                                @change="setFilter('provider')" label="Provider" item-text="name" item-value="id"
+                                @change="setFilter('provider')" label="Platform" item-text="name" item-value="id"
                 ></v-autocomplete>
               </v-col>
             </div>

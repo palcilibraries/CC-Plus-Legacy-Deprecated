@@ -50,7 +50,7 @@
         <div v-if="filters['prov'].length>0" class="x-box">
             <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('prov')"/>&nbsp;
         </div>
-        <v-autocomplete :items="filter_options['prov']" v-model="filters['prov']" label="Provider(s)" item-text="name"
+        <v-autocomplete :items="filter_options['prov']" v-model="filters['prov']" label="Platform(s)" item-text="name"
                         item-value="id" @change="updateFilters('prov')" multiple>
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('prov')">
@@ -60,7 +60,7 @@
             <v-divider class="mt-1"></v-divider>
           </template>
           <template v-slot:selection="{ item, index }">
-            <span v-if="index==0 && allSelected.prov">All Providers</span>
+            <span v-if="index==0 && allSelected.prov">All Platforms</span>
             <span v-else-if="index==0 && !allSelected.prov">{{ item.name }}</span>
             <span v-else-if="index===1 && !allSelected.prov" class="text-grey text-caption align-self-center">
               &nbsp; +{{ filters['prov'].length-1 }} more
@@ -140,8 +140,8 @@
       </template>
       <template v-slot:item.provider.name="{ item }">
         <span>
-          <v-icon v-if="item.provider.inst_id==1" title="Consortium Provider">mdi-account-multiple</v-icon>
-          <v-icon v-else-if="item.provider.inst_id>1" title="Institutional Provider">mdi-home-outline</v-icon>
+          <v-icon v-if="item.provider.inst_id==1" title="Consortium Platform">mdi-account-multiple</v-icon>
+          <v-icon v-else-if="item.provider.inst_id>1" title="Institutional Platform">mdi-home-outline</v-icon>
           &nbsp;
         </span>
         <span v-if="item.provider.is_active==0" class="isInactive">{{ item.provider.name }}</span>
@@ -205,13 +205,13 @@
             ></v-file-input>
             <p>
               <strong>Note:&nbsp; SUSHI credential imports function exclusively as Updates. Existing credentials for
-              provider-institution pairs not included will be preserved.</strong>
+              platform-institution pairs not included will be preserved.</strong>
             </p>
             <p>
-              Imports will overwrite existing credentials whenever a match for an Institution-ID and Provider-ID are
-              found in the import file. If no credentials exist for a given valid provider-institution pair, new
+              Imports will overwrite existing credentials whenever a match for an Institution-ID and Platform-ID are
+              found in the import file. If no credentials exist for a given valid platform-institution pair, new
               credentials will be created and saved. Any values in columns D-H which are NULL, blank, or missing for
-              a valid provider-institution pair, will result in the Default value being stored for that field.
+              a valid platform-institution pair, will result in the Default value being stored for that field.
             </p>
             <p>
               Generating an export of the existing credentials FIRST will provide detailed instructions for
@@ -239,12 +239,12 @@
               <strong>In order to retrieve all records, all filters must be cleared first.</strong>
             </p>
             <p>
-              <strong>Note:&nbsp; By default, SUSHI credential exports will include ALL active institutions and providers
-                including institution-provider pairs that are not yet defined. Excluding instution-provider pairs with missing
+              <strong>Note:&nbsp; By default, SUSHI credential exports will include ALL active institutions and platforms
+                including institution-platform pairs that are not yet defined. Excluding instution-platform pairs with missing
                 credentials will limit the exported records to only pairs with defined credentials. Output fields in the export
                 will be labelled where values are required or missing.</strong>
             </p>
-            <v-checkbox v-model="exclude_missing" label="Exclude Institution-Provider pairs with missing credentials?"
+            <v-checkbox v-model="exclude_missing" label="Exclude Institution-Platform pairs with missing credentials?"
                         dense
             ></v-checkbox>
           </v-container>
@@ -318,7 +318,7 @@
                 header_fields: [
                   { label: 'Status', name: 'status' },
                   { label: 'Institution', name: 'institution.name' },
-                  { label: 'Provider', name: 'provider.name' },
+                  { label: 'Platform', name: 'provider.name' },
                   { label: '', name: 'customer_id' },
                   { label: '', name: 'requestor_id' },
                   { label: '', name: 'api_key' },
@@ -617,7 +617,7 @@
               let msg = "Bulk processing will process each requested credential sequentially.<br><br>";
               if (this.bulkAction == 'Enable') {
                   msg += "Enabling the selected credential(s) will cause them to be added to the harvesting queue";
-                  msg += " according to the harvest day defined for the provider(s).";
+                  msg += " according to the harvest day defined for the platform(s).";
               } else if (this.bulkAction == 'Disable') {
                   msg += " Disabling the selected credential(s) will leave the attempts counter intact, and will";
                   msg += " prevent future harvesting attempts. Any queued harvests related to the credentials";

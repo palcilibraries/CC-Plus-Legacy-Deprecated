@@ -12,16 +12,16 @@
         <v-expansion-panel-content>
           <p>&nbsp;</p>
           <p>Harvests may be manually added to the CC-Plus harvesting queue once settings are defined to connect
-             provider services with one more institutions.
+             platform services with one more institutions.
           </p>
           <p>The harvesting queue is automatically scanned on a preset interval established by the CC-Plus administrator.<br />
              The CC-Plus system processes all harvest requests on a first-in first-out basis.
              <h5>Note:</h5>
              <ul>
-              <li>Requesting a manual harvest for a previously harvested provider, institition, and month,
+              <li>Requesting a manual harvest for a previously harvested platform, institition, and month,
                   will <strong>re-initialize the harvest as a new entry</strong> with zero attempts.</li>
               <li>On successful retrieval, manually harvested data will replace (overwrite) all previously
-                  harvested report data for a given institution->provider->month.</li>
+                  harvested report data for a given institution->platform->month.</li>
              </ul>
           </p>
           <manual-harvest :institutions="harvest_insts" :inst_groups="groups" :providers="harvest_provs" :all_reports="reports"

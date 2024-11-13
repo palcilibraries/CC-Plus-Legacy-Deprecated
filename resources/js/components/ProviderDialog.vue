@@ -2,8 +2,8 @@
   <div>
     <v-form v-model="formValid">
       <v-row class="d-flex ma-2" no-gutters>
-        <v-col v-if="mutable_dtype=='edit'" class="d-flex pt-4 justify-center"><h1 align="center">Edit Provider settings</h1></v-col>
-        <v-col v-else class="d-flex pt-4 justify-center"><h1 align="center">Connect a Provider</h1></v-col>
+        <v-col v-if="mutable_dtype=='edit'" class="d-flex pt-4 justify-center"><h1 align="center">Edit Platform settings</h1></v-col>
+        <v-col v-else class="d-flex pt-4 justify-center"><h1 align="center">Connect a Platform</h1></v-col>
       </v-row>
       <v-row class="d-flex mx-2 my-0" no-gutters>
         <v-col class="d-flex px-2" cols="8">
@@ -11,7 +11,7 @@
         </v-col>
         <v-col v-if="mutable_dtype=='edit'" class="d-flex px-2" cols="2">
           <div class="idbox">
-            <v-icon title="CC+ Provider ID">mdi-crosshairs-gps</v-icon>&nbsp; {{ mutable_provider.id }}
+            <v-icon title="CC+ Platform ID">mdi-crosshairs-gps</v-icon>&nbsp; {{ mutable_provider.id }}
           </div>
         </v-col>
       </v-row>
@@ -25,7 +25,7 @@
           <span role="warning">Editting institution-specific settings only</span>
         </v-col>
         <v-col v-else class="d-flex px-2 warning justify-center">
-          <span role="warning">This Provider Information is Read-Only</span>
+          <span role="warning">This Platform Information is Read-Only</span>
         </v-col>
       </v-row>
       <div v-if="is_admin">
@@ -106,7 +106,7 @@
       <v-row class="d-flex ma-2" no-gutters>
         <v-spacer></v-spacer>
         <v-col class="d-flex px-2 justify-center" cols="6">
-          <v-btn x-small color="primary" @click="saveProv" :disabled="!formValid">Save Provider</v-btn>
+          <v-btn x-small color="primary" @click="saveProv" :disabled="!formValid">Save Platform</v-btn>
         </v-col>
         <v-col class="d-flex px-2 justify-center" cols="6">
           <v-btn x-small color="primary" @click="cancelDialog">Cancel</v-btn>
@@ -189,11 +189,11 @@
           this.mutable_dtype = "connect";
           // Assigning conso-provider to a new inst_id?
           if (this.provider.is_conso && this.form.inst_id != 1) {
-               this.warn_inst = "Saving this provider with new reports creates an institutional copy";
+               this.warn_inst = "Saving this platform with new reports creates an institutional copy";
           }
           // We're about to connect it to the consortium?
           if (this.form.inst_id==1) {
-              this.warn_inst = "Making this provider consortium-wide updates institutional definitions";
+              this.warn_inst = "Making this platform consortium-wide updates institutional definitions";
           }
           // Use consortium report_state if provider is conso-connected
           let consoIdx = this.provider.connected.findIndex(p => p.inst_id == 1);
@@ -211,7 +211,7 @@
       initializeForm () {
         this.warn_inst = "";
         if (this.mutable_dtype == 'connect' && !this.provider.is_conso && this.provider.connected.length>0 && this.provider.inst_id==1) {
-            this.warn_inst = "Making this provider consortium-wide updates institutional definitions";
+            this.warn_inst = "Making this platform consortium-wide updates institutional definitions";
         }
         // Setup initial form fields based on provider
         this.form.name = this.mutable_provider.name;

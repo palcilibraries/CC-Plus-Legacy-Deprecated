@@ -27,7 +27,7 @@
             <v-divider class="mt-1"></v-divider>
           </template>
           <template v-slot:selection="{ item, index }">
-            <span v-if="index==0 && allSelected.providers">All Providers</span>
+            <span v-if="index==0 && allSelected.providers">All Platforms</span>
             <span v-else-if="index==0 && !allSelected.providers">{{ item.name }}</span>
             <span v-else-if="index===1 && !allSelected.providers" class="text-grey text-caption align-self-center">
               &nbsp; +{{ mutable_filters['providers'].length-1 }} more

@@ -19,7 +19,7 @@
             <v-col cols="2" class="d-flex justify-center"> &lt;&lt; -- &gt;&gt; </v-col>
             <v-col v-if="providers.length>1" class="d-flex px-2" cols="5">
               <v-autocomplete :items="connectable_providers" v-model="sushi_prov" return-object item-text="name"
-                              label="Choose a Provider">
+                              label="Choose a Platform">
                 <template #item="{ item, on, attrs }">
                   <v-list-item v-on="on" v-bind="attrs" #default="{ active }">
                     <v-list-item-avatar>
@@ -57,7 +57,7 @@
           <div v-if="mutable_dtype=='create' && !sushi_prov.is_conso">
             <v-row class="d-flex my-0 mx-2" no-gutters>
               <v-col class="d-flex px-2 warning justify-center">
-                <span>Creating this setting will add a provider definition; one report-type is required</span>
+                <span>Creating this setting will add a platform definition; one report-type is required</span>
               </v-col>
             </v-row>
             <v-row class="d-flex  my-0 mx-2 justify-center" no-gutters>
@@ -191,7 +191,7 @@
           this.sushi_prov.connectors.forEach( (cnx) => {
               if (cnx.required) {
                   if (this.form[cnx.name] == '' || this.form[cnx.name] == null) {
-                      this.failure = "Error: "+cnx.name+" must be supplied to connect to this provider!";
+                      this.failure = "Error: "+cnx.name+" must be supplied to connect to this platform!";
                   }
               }
           });

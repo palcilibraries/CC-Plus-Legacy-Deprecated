@@ -47,23 +47,23 @@
       </div>
       <v-row v-if="available_providers.length>0" class="d-flex ma-2" no-gutters>
         <v-col class="d-flex px-2" cols="3" sm="3">
-          <v-autocomplete :items="available_providers" v-model="form.prov" @change="onProvChange" multiple label="Provider(s)"
-                          item-text="name" item-value="id" hint="Provider(s) to Harvest">
+          <v-autocomplete :items="available_providers" v-model="form.prov" @change="onProvChange" multiple label="Platform(s)"
+                          item-text="name" item-value="id" hint="Platform(s) to Harvest">
             <template v-slot:prepend-item>
               <v-list-item v-if="allConsoProvs || allProvs" @click="updateAllProvs('Clear')">
                  <span>Clear Selections</span>
               </v-list-item>
               <v-list-item v-if="!allConsoProvs && !allProvs" @click="updateAllProvs('ALL')">
-                 <span>All Providers</span>
+                 <span>All Platforms</span>
               </v-list-item>
               <v-list-item v-if="!allConsoProvs && !allProvs" @click="updateAllProvs('Conso')">
-                 <span>All Consortium Providers</span>
+                 <span>All Consortium Platforms</span>
               </v-list-item>
               <v-divider class="mt-1"></v-divider>
             </template>
             <template v-slot:selection="{ item, index }">
-              <span v-if="index==0 && allProvs">All Providers</span>
-              <span v-if="index==0 && allConsoProvs">All Consortium Providers</span>
+              <span v-if="index==0 && allProvs">All Platforms</span>
+              <span v-if="index==0 && allConsoProvs">All Consortium Platforms</span>
               <span v-else-if="index<2 && !allConsoProvs && !allProvs">{{ item.name }}</span>
               <span v-else-if="index===2 && !allConsoProvs && !allProvs" class="text-grey text-caption align-self-center">
                 &nbsp; +{{ form.prov.length-2 }} more
@@ -124,7 +124,7 @@
         <v-btn small color="primary" type="submit" :disabled="form.errors.any()">Submit</v-btn>
       </v-row>
       <v-row v-else-if="(form.inst.length>0 || form.inst_group_id>0) && form.prov.length>0 && available_reports.length==0" no-gutters>
-        <span class="form-fail" role="alert">No reports defined or available for selected Provider/Institution.</span>
+        <span class="form-fail" role="alert">No reports defined or available for selected Platform/Institution.</span>
       </v-row>
     </form>
   </div>

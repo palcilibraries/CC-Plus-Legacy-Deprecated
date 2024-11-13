@@ -29,8 +29,8 @@
     <v-row class="d-flex mt-1 mx-2" no-gutters>
       <v-col class="d-flex" cols="3" sm="3">
         <v-container fluid>
-          <v-autocomplete :items="filter_options['prov']" v-model="selected_provs" label="Limit by Provider" multiple
-                          @change="onProvChange" item-text="name" item-value="id" hint="Limit the report by provider">
+          <v-autocomplete :items="filter_options['prov']" v-model="selected_provs" label="Limit by Platform" multiple
+                          @change="onProvChange" item-text="name" item-value="id" hint="Limit the report by platform">
             <template #item="{ item, on, attrs }">
               <v-list-item v-on="on" v-bind="attrs" #default="{ active }">
                 <v-list-item-action>
@@ -53,10 +53,10 @@
     <v-row class="d-flex mt-1 mx-2" no-gutters>
       <v-col class="d-flex pa-0">
         <div v-if="working">
-            <span>...Working... checking available data for requested Institution(s) and Provider(s)</span>
+            <span>...Working... checking available data for requested Institution(s) and Platform(s)</span>
         </div>
         <div v-else-if="!haveData">
-            <span><strong>There is no saved data for this combination of Institution(s) and Provider(s)</strong></span>
+            <span><strong>There is no saved data for this combination of Institution(s) and Platform(s)</strong></span>
         </div>
         <div v-else>
         <v-radio-group v-model="selectedReport" :mandatory="false" @change="onReportChange">
