@@ -96,13 +96,7 @@ class Sushi extends Model
        // Decode result body into $json, throw and log error if it fails
        // Make sure $json is a proper object
         $this->json = json_decode($result->getBody());
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->detail = json_last_error_msg();
-            $this->step = "JSON";
-            $this->error_code = 9020;
-            $this->message = "Error decoding JSON : ";
-            return "Fail";
-        } else if (!is_object($this->json)) {
+        if (!is_object($this->json)) {
             $this->detail = " request returned " . (is_array($this->json) ? 'an array' : 'a scalar');
             $this->step = "JSON";
             $this->message = "JSON is not an object : ";
@@ -138,6 +132,13 @@ class Sushi extends Model
                     return "Fail";
                 }
             }
+        }
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->detail = json_last_error_msg();
+            $this->step = "JSON";
+            $this->error_code = 9020;
+            $this->message = "Error decoding JSON : ";
+            return "Fail";
         }
         return "Success";
     }
