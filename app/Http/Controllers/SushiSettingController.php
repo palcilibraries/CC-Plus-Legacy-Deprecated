@@ -235,11 +235,11 @@ class SushiSettingController extends Controller
 
         // Confirm valid provider ID (pointing at a global)
         if (!isset($input['prov_id'])) {
-            return response()->json(['result' => false, 'msg' => 'Provider assignment is required']);
+            return response()->json(['result' => false, 'msg' => 'Platform assignment is required']);
         }
         $gp = GlobalProvider::where('id',$input['prov_id'])->first();
         if (!$gp) {
-            return response()->json(['result' => false, 'msg' => 'Provider not unknown or undefined']);
+            return response()->json(['result' => false, 'msg' => 'Platform not unknown or undefined']);
         }
 
         // If there is no existing (conso) Provider definition for the global provider, create it now
@@ -494,7 +494,7 @@ class SushiSettingController extends Controller
             $prov_filters = $providers->pluck('id')->toArray();
         }
         if (!$providers) {
-            $msg = "Export failed : could not find requested provider(s).";
+            $msg = "Export failed : could not find requested platform(s).";
             return response()->json(['result' => false, 'msg' => $msg]);
         }
 
@@ -542,9 +542,9 @@ class SushiSettingController extends Controller
         $top_txt  = "The Credentials tab represents a starting place for updating or importing sushi credentials.\n";
         $top_txt .= "The table below describes the datatype and order that the import process requires.\n\n";
         $top_txt .= "Any Import rows without an existing (institution) CC+ System ID in column-A or Local ID";
-        $top_txt .= " in column-B AND a valid (provider) ID in column-C will be ignored. If values for the other";
+        $top_txt .= " in column-B AND a valid (platform) ID in column-C will be ignored. If values for the other";
         $top_txt .= " columns are optional and are missing, null, or invalid, they will be set to the 'Default'.\n";
-        $top_txt .= "The data rows on the 'Credentials' tab provide reference values for the Provider-ID and";
+        $top_txt .= "The data rows on the 'Credentials' tab provide reference values for the Platform-ID and";
         $top_txt .= " Institution-ID columns.\n\n";
         $top_txt .= "Once the data sheet is ready to import, save the sheet as a CSV and import it into CC-Plus.\n";
         $top_txt .= "Any header row or columns beyond 'G' will be ignored. Columns I-J are informational only.";
@@ -578,9 +578,9 @@ class SushiSettingController extends Controller
         $info_sheet->setCellValue('B18', 'String');
         $info_sheet->setCellValue('C18', 'Local Institution identifier');
         $info_sheet->setCellValue('D18', 'Yes - If CC+ System ID not given');
-        $info_sheet->setCellValue('A19', 'Provider ID');
+        $info_sheet->setCellValue('A19', 'Platform ID');
         $info_sheet->setCellValue('B19', 'Integer > 1');
-        $info_sheet->setCellValue('C19', 'Unique CC-Plus Provider ID - required');
+        $info_sheet->setCellValue('C19', 'Unique CC-Plus Platform ID - required');
         $info_sheet->setCellValue('D19', 'Yes');
         $info_sheet->setCellValue('A20', 'Status');
         $info_sheet->setCellValue('B20', 'String');
@@ -589,17 +589,17 @@ class SushiSettingController extends Controller
         $info_sheet->setCellValue('E20', 'Enabled');
         $info_sheet->setCellValue('A21', 'Customer ID');
         $info_sheet->setCellValue('B21', 'String');
-        $info_sheet->setCellValue('C21', 'SUSHI customer ID , provider-specific');
+        $info_sheet->setCellValue('C21', 'SUSHI customer ID , platform-specific');
         $info_sheet->setCellValue('D21', 'No');
         $info_sheet->setCellValue('E21', 'NULL');
         $info_sheet->setCellValue('A22', 'Requestor ID');
         $info_sheet->setCellValue('B22', 'String');
-        $info_sheet->setCellValue('C22', 'SUSHI requestor ID , provider-specific');
+        $info_sheet->setCellValue('C22', 'SUSHI requestor ID , platform-specific');
         $info_sheet->setCellValue('D22', 'No');
         $info_sheet->setCellValue('E22', 'NULL');
         $info_sheet->setCellValue('A23', 'API Key');
         $info_sheet->setCellValue('B23', 'String');
-        $info_sheet->setCellValue('C23', 'SUSHI API Key , provider-specific');
+        $info_sheet->setCellValue('C23', 'SUSHI API Key , platform-specific');
         $info_sheet->setCellValue('D23', 'No');
         $info_sheet->setCellValue('E23', 'NULL');
         $info_sheet->setCellValue('A24', 'LEAVE BLANK');
@@ -610,9 +610,9 @@ class SushiSettingController extends Controller
         $info_sheet->mergeCells('A27:E29');
         $info_sheet->getStyle('A27:E29')->applyFromArray($head_style);
         $info_sheet->getStyle('A27:E29')->getAlignment()->setWrapText(true);
-        $bot_txt = "Status will be set to 'Suspended' for credentials where the Institution or Provider is not active.\n";
+        $bot_txt = "Status will be set to 'Suspended' for credentials where the Institution or Platform is not active.\n";
         $bot_txt .= "Status will be set to 'Incomplete', and the field values marked as missing, if values are not";
-        $bot_txt .= " supplied for fields required to connect to the provider (e.g. for customer_id, requestor_id, etc.)";
+        $bot_txt .= " supplied for fields required to connect to the platform (e.g. for customer_id, requestor_id, etc.)";
         $info_sheet->setCellValue('A27', $bot_txt);
 
         // Set row height and auto-width columns for the sheet
@@ -673,14 +673,14 @@ class SushiSettingController extends Controller
         $inst_sheet->setTitle('Credentials');
         $inst_sheet->setCellValue('A1', 'Institution ID (CC+ System ID)');
         $inst_sheet->setCellValue('B1', 'Local Institution Identifier');
-        $inst_sheet->setCellValue('C1', 'Provider ID (CC+ System ID)');
+        $inst_sheet->setCellValue('C1', 'Platform ID (CC+ System ID)');
         $inst_sheet->setCellValue('D1', 'Status');
         $inst_sheet->setCellValue('E1', 'Customer ID');
         $inst_sheet->setCellValue('F1', 'Requestor ID');
         $inst_sheet->setCellValue('G1', 'API Key');
         $inst_sheet->setCellValue('H1', 'LEAVE BLANK');
         $inst_sheet->setCellValue('I1', 'Institution-Name');
-        $inst_sheet->setCellValue('J1', 'Provider-Name');
+        $inst_sheet->setCellValue('J1', 'Platform-Name');
 
         // Put data rows into the sheet
         $row = 2;
@@ -712,9 +712,9 @@ class SushiSettingController extends Controller
                 }
             }
             if (!$prov_filters) {
-                $fileName .= "_AllProviders";
+                $fileName .= "_AllPlatforms";
             } else {
-                $fileName .= ($prov_name == "") ? "_SomeProviders": "_" . preg_replace('/ /', '', $prov_name);
+                $fileName .= ($prov_name == "") ? "_SomePlatforms": "_" . preg_replace('/ /', '', $prov_name);
             }
             if ( count($status_filters) > 0) {
                 $fileName .= ($status_name == "") ? "_SomeStauses" : "_".$status_name;

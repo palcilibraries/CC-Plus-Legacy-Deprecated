@@ -459,7 +459,7 @@ class ProviderController extends Controller
         $return_provider->connected = $connected_data;
         $return_provider->connection_count = $connected->count();
         $return_provider->can_delete = ($all_deleteable);
-        return response()->json(['result' => true, 'msg' => 'Provider settings successfully updated',
+        return response()->json(['result' => true, 'msg' => 'Platform settings successfully updated',
                                  'provider' => $return_provider]);
     }
 
@@ -626,7 +626,7 @@ class ProviderController extends Controller
         $returnProv->can_connect = (!$conso_connection && !$localAdmin) ? true : false;
         $returnProv->active = ($returnProv->is_active) ? 'Active' : 'Inactive';
 
-        return response()->json(['result' => true, 'msg' => 'Provider successfully connected', 'provider' => $returnProv]);
+        return response()->json(['result' => true, 'msg' => 'Platform successfully connected', 'provider' => $returnProv]);
     }
 
     /**
@@ -656,7 +656,7 @@ class ProviderController extends Controller
 
         // If provider has saved data, return error
         if ($this->hasSavedReportData($globalProvID, $instProvID)) {
-            return response()->json(['result' => false, 'msg' => 'Provider has saved report data, cannot delete']);
+            return response()->json(['result' => false, 'msg' => 'Platform has saved report data, cannot delete']);
         }
 
         // Get all provider definitions that match the global $id
@@ -676,7 +676,7 @@ class ProviderController extends Controller
             }
         }
         // Return result
-        $msg = ($deleted) ? 'Provider definition(s) successfully deleted' : 'No providers deleted - authorization failed';
+        $msg = ($deleted) ? 'Platform definition(s) successfully deleted' : 'No platforms deleted - authorization failed';
         return response()->json(['result' => $deleted, 'msg' => $msg]);
     }
 
@@ -723,8 +723,8 @@ class ProviderController extends Controller
         $info_sheet->mergeCells('A1:E7');
         $info_sheet->getStyle('A1:E8')->applyFromArray($topleft_style);
         $info_sheet->getStyle('A1:E7')->getAlignment()->setWrapText(true);
-        $top_txt  = "The Providers tab represents a starting place for updating or importing settings. The table\n";
-        $top_txt .= "below describes the datatype and order that the import expects. Any Import rows without a global provider\n";
+        $top_txt  = "The Platforms tab represents a starting place for updating or importing settings. The table\n";
+        $top_txt .= "below describes the datatype and order that the import expects. Any Import rows without a global platform\n";
         $top_txt .= "ID value in column A and a valid Institution ID column B will be ignored. If values are missing or invalid\n";
         $top_txt .= "for columns (B-F), but not required, they will be set to the 'Default'.\n\n";
         $top_txt .= "Any header row or columns beyond 'F' will be ignored. Once the data sheet contains everything\n";
@@ -736,7 +736,7 @@ class ProviderController extends Controller
         $info_sheet->getStyle('B8:E10')->applyFromArray($topleft_style);
         $info_sheet->getStyle('B8:E10')->getAlignment()->setWrapText(true);
         $info_sheet->getStyle('A12:E20')->applyFromArray($topleft_style);
-        $note_txt  = "Provider imports cannot be used to delete existing providers; only additions and updates are\n";
+        $note_txt  = "Platform imports cannot be used to delete existing platforms; only additions and updates are\n";
         $note_txt .= "supported. The recommended approach is to add to, or modify, a previously run full export\n";
         $note_txt .= "to ensure that desired end result is achieved.";
         $info_sheet->setCellValue('B8', $note_txt);
@@ -746,9 +746,9 @@ class ProviderController extends Controller
         $info_sheet->setCellValue('C12', 'Description');
         $info_sheet->setCellValue('D12', 'Required');
         $info_sheet->setCellValue('E12', 'Default');
-        $info_sheet->setCellValue('A13', 'Global Provider ID');
+        $info_sheet->setCellValue('A13', 'Global Platform ID');
         $info_sheet->setCellValue('B13', 'Integer');
-        $info_sheet->setCellValue('C13', 'Unique CC-Plus Provider ID');
+        $info_sheet->setCellValue('C13', 'Unique CC-Plus Platform ID');
         $info_sheet->setCellValue('D13', 'Yes');
         $info_sheet->setCellValue('A14', 'Institution ID');
         $info_sheet->setCellValue('B14', 'Integer');
@@ -756,12 +756,12 @@ class ProviderController extends Controller
         $info_sheet->setCellValue('D14', 'Yes');
         $info_sheet->setCellValue('A15', 'Name');
         $info_sheet->setCellValue('B15', 'String');
-        $info_sheet->setCellValue('C15', 'Provider name');
+        $info_sheet->setCellValue('C15', 'Platform name');
         $info_sheet->setCellValue('D15', 'No');
-        $info_sheet->setCellValue('E15', 'Global Provider Name');
+        $info_sheet->setCellValue('E15', 'Global Platform Name');
         $info_sheet->setCellValue('A16', 'Active');
         $info_sheet->setCellValue('B16', 'String (Y or N)');
-        $info_sheet->setCellValue('C16', 'Make the provider active?');
+        $info_sheet->setCellValue('C16', 'Make the platform active?');
         $info_sheet->setCellValue('D16', 'No');
         $info_sheet->setCellValue('E16', 'Yes');
         $info_sheet->setCellValue('A17', 'Inst-Specific');
@@ -786,7 +786,7 @@ class ProviderController extends Controller
 
         // Load the provider data into a new sheet
         $providers_sheet = $spreadsheet->createSheet();
-        $providers_sheet->setTitle('Providers');
+        $providers_sheet->setTitle('Platforms');
         $providers_sheet->setCellValue('A1', 'Global Id');
         $providers_sheet->setCellValue('B1', 'Institution ID');
         $providers_sheet->setCellValue('C1', 'Name');
@@ -832,9 +832,9 @@ class ProviderController extends Controller
 
         // Give the file a meaningful filename
         if ($thisUser->hasRole('Admin')) {
-            $fileName = "CCplus_" . session('ccp_con_key', '') . "_Providers.xlsx";
+            $fileName = "CCplus_" . session('ccp_con_key', '') . "_Platforms.xlsx";
         } else {
-            $fileName = "CCplus_" . preg_replace('/ /', '', $thisUser->institution->name) . "_Providers.xlsx";
+            $fileName = "CCplus_" . preg_replace('/ /', '', $thisUser->institution->name) . "_Platforms.xlsx";
         }
 
         // redirect output to client browser
@@ -967,7 +967,7 @@ class ProviderController extends Controller
         if ($prov_skipped > 0) {
             $detail .= ($detail != "") ? ", " . $prov_skipped . " skipped" : $prov_skipped . " skipped";
         }
-        $msg  = 'Import successful, Providers : ' . $detail;
+        $msg  = 'Import successful, Platforms : ' . $detail;
 
         // return response()->json(['result' => true, 'msg' => $msg, 'providers' => $providers]);
         return response()->json(['result' => true, 'msg' => $msg]);

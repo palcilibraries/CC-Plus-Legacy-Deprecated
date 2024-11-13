@@ -199,7 +199,7 @@ class GlobalProviderController extends Controller
       $provider['connector_state'] = $input['connector_state'];
       $provider['report_state'] = (isset($input['report_state'])) ? $input['report_state'] : array();
 
-      return response()->json(['result' => true, 'msg' => 'Provider successfully created',
+      return response()->json(['result' => true, 'msg' => 'Platform successfully created',
                                'provider' => $provider]);
     }
 
@@ -390,7 +390,7 @@ class GlobalProviderController extends Controller
           config(['database.connections.consodb.database' => $keepDB]);
       }
 
-      return response()->json(['result' => true, 'msg' => 'Global Provider settings successfully updated',
+      return response()->json(['result' => true, 'msg' => 'Global Platform settings successfully updated',
                                'provider' => $provider]);
     }
 
@@ -431,7 +431,7 @@ class GlobalProviderController extends Controller
             return response()->json(['result' => false, 'msg' => $ex->getMessage()]);
         }
 
-        return response()->json(['result' => true, 'msg' => 'Global Provider successfully deleted']);
+        return response()->json(['result' => true, 'msg' => 'Global Platform successfully deleted']);
     }
 
     /**
@@ -547,7 +547,7 @@ class GlobalProviderController extends Controller
                         continue;
                     // this should not happen since the JSON was requested using the global_provider registryID value
                     } else {
-                        return response()->json(['result'=>false, 'msg'=>"Error matching provider to registry!"]);
+                        return response()->json(['result'=>false, 'msg'=>"Error matching platform to registry!"]);
                     }
                 }
             }
@@ -558,7 +558,7 @@ class GlobalProviderController extends Controller
             // if global_provider is not refreshable, skip it
             if (!$global_provider->refreshable && !$is_dialog) {
                 if ($gpCount == 1) {
-                    return response()->json(['result'=>false, 'msg'=>"Provider not refreshable or is not active"]);
+                    return response()->json(['result'=>false, 'msg'=>"Platform not refreshable or is not active"]);
                 }
                 $no_refresh[] = $global_provider->name;
                 continue;

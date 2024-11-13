@@ -610,7 +610,7 @@ class HarvestLogController extends Controller
        $providers = GlobalProvider::where('is_active', true)->whereIn('id',$availables)
                             ->orderBy('name', 'ASC')->get(['id','name'])->toArray();
        if (sizeof($providers) == 0) {
-           return response()->json(['result' => false, 'msg' => 'No matching, active providers found']);
+           return response()->json(['result' => false, 'msg' => 'No matching, active platforms found']);
        } else {
            return response()->json(['providers' => $providers], 200);
        }
