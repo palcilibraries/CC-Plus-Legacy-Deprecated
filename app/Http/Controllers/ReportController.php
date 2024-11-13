@@ -159,6 +159,7 @@ class ReportController extends Controller
     {
         $thisUser = auth()->user();
         $user_inst = $thisUser->inst_id;
+        $conso_db = config('database.connections.consodb.database');
 
         // Start by getting a full filter-set (all elements from the datastore)
         // Saved reports have the active fields and filters built-in
@@ -219,14 +220,16 @@ class ReportController extends Controller
         $show_all = ($thisUser->hasAnyRole(['Admin','Viewer']));
         $provs_with_data = self::hasHarvests('prov_id');
         $limit_by_inst = array();
+        $_insts = array();
         if ($show_all) {
-            $insts_with_data = self::hasHarvests('inst_id');
-            $filter_options['institution'] = Institution::whereIn('id', $insts_with_data)->where('id', '>', 1)
+            $_insts = self::hasHarvests('inst_id');
+            $filter_options['institution'] = Institution::whereIn('id', $_insts)->where('id', '>', 1)
                                                         ->orderBy('name', 'ASC')->get(['id','name'])->toArray();
         } else {  // Managers and Users are limited their own inst
             $filter_options['institution'] = Institution::where('id', '=', $thisUser->inst_id)
                                                         ->get(['id','name'])->toArray();
             $limit_by_inst = array(1,$user_inst);
+            $_insts = array($user_inst);
         }
 
         // Setup providers filter options
@@ -234,6 +237,7 @@ class ReportController extends Controller
                                  ->orderBy('name','ASC')->get(['id','name']);
 
         // Filter out limited providers and add report assignments and institution
+        $_provs = array();
         $filter_options['provider'] = array();
         foreach ($globals as $global) {
             $global_inst_ids = $global->connectedInstitutions();
@@ -241,8 +245,17 @@ class ReportController extends Controller
                 $global->reports = $global->enabledReports();
                 $global->institutions = $global_inst_ids;
                 $filter_options['provider'][] = $global;
+                $_provs[] = $global->id;
             }
         }
+
+        // Set database filter options depending on preset_filters if they exist
+        $filterProvs = (count($preset_filters['prov_id'])>0) ? $preset_filters['prov_id'] : $_provs;
+        $filterInsts = (count($preset_filters['inst_id'])>0) ? $preset_filters['inst_id'] : $_insts;
+        $filter_options['database'] = DB::table($conso_db . '.dr_report_data as DR')->selectRaw("DISTINCT(DB.name),DB.id")
+                                        ->join('ccplus_global.databases as DB', 'DR.db_id', 'DB.id')
+                                        ->whereIn('DR.inst_id',$filterInsts)->whereIn('DR.prov_id',$filterProvs)
+                                        ->orderBy('DB.name', 'ASC')->get()->toArray();
 
         // Set options for the other filters
         foreach ($all_filters as $filter) {
@@ -250,7 +263,7 @@ class ReportController extends Controller
                 continue;
             }
             $_key = rtrim($filter->table_name, "s");
-            if ($_key != 'institution' && $_key != 'provider') {
+            if ($_key != 'institution' && $_key != 'provider' && $_key != 'database') {
                 $result = $filter->model::orderBy('name', 'ASC')->where('name','<>',' ')->get(['id','name'])->toArray();
                 $filter_options[$_key] = $result;
             }
@@ -762,43 +775,18 @@ class ReportController extends Controller
 
         // Generate database filter-options for DR report
         if ($master_name == "DR") {
-          $db_options = DB::table($report_table)
-                       ->join($global_db . '.databases as DB', 'DR.db_id', 'DB.id')
-                       ->when($limit_to_insts, function ($query, $limit_to_insts) use ($master_name) {
-                           return $query->whereIn($master_name . '.inst_id', $limit_to_insts);
-                       })
-                       ->when($limit_to_provs, function ($query, $limit_to_provs) use ($master_name) {
-                           return $query->whereIn($master_name . '.prov_id', $limit_to_provs);
-                       })
-                       ->when($limit_to_dbase, function ($query, $limit_to_dbase) use ($master_name) {
-                           return $query->whereIn($master_name . '.db_id', $limit_to_dbase);
-                       })
-                       ->when($limit_to_plats, function ($query, $limit_to_plats) use ($master_name) {
-                           return $query->whereIn($master_name . '.plat_id', $limit_to_plats);
-                       })
-                       ->when($limit_to_dtype, function ($query, $limit_to_dtype) use ($master_name) {
-                           return $query->whereIn($master_name . '.datatype_id', $limit_to_dtype);
-                       })
-                       ->when($limit_to_atype, function ($query, $limit_to_atype) use ($master_name) {
-                           return $query->whereIn($master_name . '.accesstype_id', $limit_to_atype);
-                       })
-                       ->when($limit_to_ameth, function ($query, $limit_to_ameth) use ($master_name) {
-                           return $query->whereIn($master_name . '.accessmethod_id', $limit_to_ameth);
-                       })
-                       ->when($limit_to_stype, function ($query, $limit_to_stype) use ($master_name) {
-                           return $query->whereIn($master_name . '.sectiontype_id', $limit_to_stype);
-                       })
-                       ->when(self::$input_filters['yop'], function ($query) {
-                           return $query->whereBetween('yop', self::$input_filters['yop']);
-                       })
-                       ->when($ignore_zeros && $raw_where, function ($query) use ($raw_where) {
-                           return $query->whereRaw($raw_where);
-                       })
-                       ->when(sizeof($conditions) > 0, function ($query) use ($conditions) {
-                           return $query->where($conditions);
-                       })
-                       ->selectRaw("distinct DB.id,DB.name")
-                       ->get();
+            $db_options = DB::table($report_table)->selectRaw("DISTINCT(DB.name),DB.id")
+                            ->join($global_db . '.databases as DB', 'DR.db_id', 'DB.id')
+                            ->when(count($limit_to_insts)>0, function ($query) use ($limit_to_insts, $master_name) {
+                                return $query->whereIn($master_name . '.inst_id', $limit_to_insts);
+                            })
+                            ->when(count($limit_to_provs)>0, function ($query) use ($limit_to_provs, $master_name) {
+                                return $query->whereIn($master_name . '.prov_id', $limit_to_provs);
+                            })
+                            ->when(count($limit_to_plats)>0, function ($query) use ($limit_to_plats, $master_name) {
+                                return $query->whereIn($master_name . '.plat_id', $limit_to_plats);
+                            })
+                            ->orderBy('DB.name', 'ASC')->get()->toArray();
         }
         // Run the query for "COUNTER" formatted output
         if ($format == "COUNTER") {
@@ -971,7 +959,6 @@ class ReportController extends Controller
         }
         // If not exporting, return the records as JSON
         if ($runtype != 'export') {
-            // if ($master_name == "DR" && $format == 'Compact') {
             if ($master_name == "DR") {
                 return response()->json(['usage' => $records, 'db_options' => $db_options], 200);
             } else {
