@@ -8,6 +8,10 @@
       <v-col class="d-flex align-center" cols="3">
         <v-btn class='btn' small type="button" @click="clearAllFilters()">Clear Filters</v-btn>
       </v-col>
+      <v-col class="d-flex px-2" cols="3">
+        <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" single-line hide-details clearable
+        ></v-text-field>
+      </v-col>
     </v-row>
     <v-row no-gutters>
       <v-col v-if="is_admin" class="d-flex px-2 align-center" cols="2">
@@ -181,17 +185,20 @@
       </v-row>
     </div>
     <v-data-table v-model="selectedRows" :headers="headers" :items="harvest_jobs" :loading="loading" item-key="id" show-select
-                  :footer-props="footer_props" :key="dtKey">
+                  :footer-props="footer_props" :key="dtKey" :search="search">
       <template v-slot:item.created_at="{ item }">
         {{ item.created.substr(0,10) }}
       </template>
-      <template v-slot:item.status="{ item }">
-        {{ item.dStatus }}
+      <template v-slot:item.prov_name="{ item }">
+        {{ item.prov_name.substr(0,63) }}
       </template>
       <template v-slot:item.error_id="{ item }">
-        <span v-if="item.error_id>0">{{ item.error_id }}</span>
-        <span v-else>&nbsp;</span>
+        <span>{{ item.dStatus }}</span>
+        <span v-if="item.error_id>0">&nbsp;({{ item.error_id }})</span>
       </template>
+      <v-alert slot="no-results" :value="true" color="error" icon="warning">
+        Your search for "{{ search }}" found no results.
+      </v-alert>
     </v-data-table>
   </div>
 </template>
@@ -210,14 +217,13 @@
     data () {
       return {
         headers: [
-          { text: 'Harvest ID', value: 'id', align: 'center'},
           { text: 'Created', value: 'created' },
           { text: 'Platform', value: 'prov_name' },
           { text: 'Institution', value: 'inst_name' },
           { text: 'Report', value: 'report_name', align: 'center' },
           { text: 'Usage Date', value: 'yearmon' },
-          { text: 'Error', value: 'error_id', align: 'center' },
-          { text: 'Status', value: 'status', align: 'center' },
+          { text: 'Harvest ID', value: 'id', align: 'center'},
+          { text: 'Status', value: 'error_id' },
         ],
         harvest_jobs: [],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
@@ -240,6 +246,7 @@
         success: '',
         failure: '',
         loading: false,
+        search: '',
       }
     },
     methods: {
