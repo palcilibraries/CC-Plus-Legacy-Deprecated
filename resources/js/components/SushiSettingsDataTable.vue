@@ -21,13 +21,15 @@
           <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('inst')"/>&nbsp;
         </div>
         <v-autocomplete :items="filter_options['inst']" v-model="filters['inst']" @change="updateInstFilter()" multiple
-                  label="Institution(s)"  item-text="name" item-value="id">
+                  label="Institution(s)"  item-text="name" item-value="id" :search-input.sync="inputSync.inst">
           <template v-slot:prepend-item>
-            <v-list-item @click="filterAll('inst')">
-               <span v-if="allSelected.inst">Clear Selections</span>
-               <span v-else>Enable All</span>
-            </v-list-item>
-            <v-divider class="mt-1"></v-divider>
+            <div v-if="inputSync.inst==null || inputSync.inst==''" class="d-flex pa-1 align-center" no-gutters>
+              <v-list-item @click="filterAll('inst')">
+                 <span v-if="allSelected.inst">Clear Selections</span>
+                 <span v-else>Enable All</span>
+              </v-list-item>
+              <v-divider class="mt-1"></v-divider>
+            </div>
           </template>
           <template v-slot:selection="{ item, index }">
             <span v-if="index==0 && allSelected.inst">All Institutions</span>
@@ -51,13 +53,15 @@
             <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('prov')"/>&nbsp;
         </div>
         <v-autocomplete :items="filter_options['prov']" v-model="filters['prov']" label="Platform(s)" item-text="name"
-                        item-value="id" @change="updateFilters('prov')" multiple>
+                        item-value="id" @change="updateFilters('prov')" multiple :search-input.sync="inputSync.prov">
           <template v-slot:prepend-item>
-            <v-list-item @click="filterAll('prov')">
-               <span v-if="allSelected.prov">Clear Selections</span>
-               <span v-else>Enable All</span>
-            </v-list-item>
-            <v-divider class="mt-1"></v-divider>
+            <div v-if="inputSync.prov==null || inputSync.prov==''" class="d-flex pa-1 align-center" no-gutters>
+              <v-list-item @click="filterAll('prov')">
+                 <span v-if="allSelected.prov">Clear Selections</span>
+                 <span v-else>Enable All</span>
+              </v-list-item>
+              <v-divider class="mt-1"></v-divider>
+            </div>
           </template>
           <template v-slot:selection="{ item, index }">
             <span v-if="index==0 && allSelected.prov">All Platforms</span>
@@ -73,13 +77,15 @@
             <img src="/images/red-x-16.png" width="100%" alt="clear filter" @click="clearFilter('harv_stat')"/>&nbsp;
         </div>
         <v-select :items="filter_options['harv_stat']" v-model="filters['harv_stat']" @change="updateFilters('harv_stat')"
-                  multiple label="Harvest Status">
+                  multiple label="Harvest Status" :search-input.sync="inputSync.harv_stat">
           <template v-slot:prepend-item>
-            <v-list-item @click="filterAll('harv_stat')">
-               <span v-if="allSelected.harv_stat">Clear Selections</span>
-               <span v-else>Enable All</span>
-            </v-list-item>
-            <v-divider class="mt-1"></v-divider>
+            <div v-if="inputSync.harv_stat==null || inputSync.harv_stat==''" class="d-flex pa-1 align-center" no-gutters>
+              <v-list-item @click="filterAll('harv_stat')">
+                 <span v-if="allSelected.harv_stat">Clear Selections</span>
+                 <span v-else>Enable All</span>
+              </v-list-item>
+              <v-divider class="mt-1"></v-divider>
+            </div>
           </template>
           <template v-slot:selection="{ item, index }">
             <span v-if="index==0 && allSelected.harv_stat">All Statuses</span>
@@ -330,6 +336,7 @@
                 bulk_actions: [ 'Enable', 'Disable', 'Delete' ],
                 bulkAction: null,
                 selectedRows: [],
+                inputSync: { inst: '', prov: '', harv_stat: '' },
                 dtKey: 1,
                 sdKey: 1,
                 form: new window.Form({
@@ -426,6 +433,7 @@
               this.$store.dispatch('updateAllFilters',this.filters);
               this.updateFilterOptions(filt);
               if (typeof(this.allSelected[filt]) != 'undefined') this.allSelected[filt] = false;
+              if (typeof(this.inputSync[filt]) != 'undefined') this.inputSync[filt] = '';
               this.dtKey += 1;           // re-render of the datatable
           },
           // @click function for filtering/clearing all options on a filter
@@ -458,6 +466,7 @@
               Object.keys(this.filters).forEach( (key) =>  {
                 this.filters[key] = (key == 'group') ? 0 : [];
                 if (typeof(this.allSelected[key]) != 'undefined') this.allSelected[key] = false;
+                if (typeof(this.inputSync[key]) != 'undefined') this.inputSync[key] = '';
                 this.filter_options[key] = [ ...this[this.allOpts[key]]];
               });
               // Save filters in the store and reset options
