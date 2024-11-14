@@ -203,6 +203,7 @@
       </template>
       <template v-slot:item.prov_name="{ item }">
         {{ item.prov_name.substr(0,63) }}
+        <span v-if="item.prov_name.length>63">...</span>
       </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
@@ -278,6 +279,7 @@
       </template>
       <template v-slot:item.prov_name="{ item }">
         {{ item.prov_name.substr(0,63) }}
+        <span v-if="item.prov_name.length>63">...</span>
       </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
