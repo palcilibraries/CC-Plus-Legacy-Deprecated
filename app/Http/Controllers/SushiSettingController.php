@@ -450,7 +450,7 @@ class SushiSettingController extends Controller
         } else {
             $filters = array('inst' => [], 'prov' => [], 'harv_stat' => [], 'group' => 0);
         }
-        $exclude_missing = ($request->exclude_missing) ? json_decode($request->exclude_missing, true) : true;
+        $only_missing = ($request->only_missing) ? json_decode($request->only_missing, true) : true;
         // Admins have export using group filter, manager can only export their own inst
         $group = null;
         if ($thisUser->hasRole("Admin")) {
@@ -547,7 +547,7 @@ class SushiSettingController extends Controller
         $top_txt .= "The data rows on the 'Credentials' tab provide reference values for the Platform-ID and";
         $top_txt .= " Institution-ID columns.\n\n";
         $top_txt .= "Once the data sheet is ready to import, save the sheet as a CSV and import it into CC-Plus.\n";
-        $top_txt .= "Any header row or columns beyond 'G' will be ignored. Columns I-J are informational only.";
+        $top_txt .= "Any header row or columns beyond 'F' will be ignored. Columns I-J are informational only.";
         $info_sheet->setCellValue('A1', $top_txt);
         $info_sheet->setCellValue('A10', "NOTES: ");
         $info_sheet->mergeCells('B10:E12');
@@ -582,41 +582,42 @@ class SushiSettingController extends Controller
         $info_sheet->setCellValue('B19', 'Integer > 1');
         $info_sheet->setCellValue('C19', 'Unique CC-Plus Platform ID - required');
         $info_sheet->setCellValue('D19', 'Yes');
-        $info_sheet->setCellValue('A20', 'Status');
+        // $info_sheet->setCellValue('A20', 'Status');
+        // $info_sheet->setCellValue('B20', 'String');
+        // $info_sheet->setCellValue('C20', 'Enabled , Disabled, Suspended, or Incomplete');
+        // $info_sheet->setCellValue('D20', 'No');
+        // $info_sheet->setCellValue('E20', 'Enabled');
+        $info_sheet->setCellValue('A20', 'Customer ID');
         $info_sheet->setCellValue('B20', 'String');
-        $info_sheet->setCellValue('C20', 'Enabled , Disabled, Suspended, or Incomplete');
+        $info_sheet->setCellValue('C20', 'SUSHI customer ID , platform-specific');
         $info_sheet->setCellValue('D20', 'No');
-        $info_sheet->setCellValue('E20', 'Enabled');
-        $info_sheet->setCellValue('A21', 'Customer ID');
+        $info_sheet->setCellValue('E20', 'NULL');
+        $info_sheet->setCellValue('A21', 'Requestor ID');
         $info_sheet->setCellValue('B21', 'String');
-        $info_sheet->setCellValue('C21', 'SUSHI customer ID , platform-specific');
+        $info_sheet->setCellValue('C21', 'SUSHI requestor ID , platform-specific');
         $info_sheet->setCellValue('D21', 'No');
         $info_sheet->setCellValue('E21', 'NULL');
-        $info_sheet->setCellValue('A22', 'Requestor ID');
+        $info_sheet->setCellValue('A22', 'API Key');
         $info_sheet->setCellValue('B22', 'String');
-        $info_sheet->setCellValue('C22', 'SUSHI requestor ID , platform-specific');
+        $info_sheet->setCellValue('C22', 'SUSHI API Key , platform-specific');
         $info_sheet->setCellValue('D22', 'No');
         $info_sheet->setCellValue('E22', 'NULL');
-        $info_sheet->setCellValue('A23', 'API Key');
+        $info_sheet->setCellValue('A23', 'LEAVE BLANK');
         $info_sheet->setCellValue('B23', 'String');
-        $info_sheet->setCellValue('C23', 'SUSHI API Key , platform-specific');
+        $info_sheet->setCellValue('C23', 'Reserved for CC-Plus use');
         $info_sheet->setCellValue('D23', 'No');
         $info_sheet->setCellValue('E23', 'NULL');
-        $info_sheet->setCellValue('A24', 'LEAVE BLANK');
-        $info_sheet->setCellValue('B24', 'String');
-        $info_sheet->setCellValue('C24', 'Reserved for CC-Plus use');
-        $info_sheet->setCellValue('D24', 'No');
-        $info_sheet->setCellValue('E24', 'NULL');
-        $info_sheet->mergeCells('A27:E29');
-        $info_sheet->getStyle('A27:E29')->applyFromArray($head_style);
-        $info_sheet->getStyle('A27:E29')->getAlignment()->setWrapText(true);
-        $bot_txt = "Status will be set to 'Suspended' for credentials where the Institution or Platform is not active.\n";
+        $info_sheet->mergeCells('A26:E29');
+        $info_sheet->getStyle('A26:E29')->applyFromArray($head_style);
+        $info_sheet->getStyle('A26:E29')->getAlignment()->setWrapText(true);
+        $bot_txt = "On import, Status will default to 'Enabled'.\n";
+        $bot_txt .= "Status will be set to 'Suspended' for credentials where the Institution or Platform is not active.\n";
         $bot_txt .= "Status will be set to 'Incomplete', and the field values marked as missing, if values are not";
         $bot_txt .= " supplied for fields required to connect to the platform (e.g. for customer_id, requestor_id, etc.)";
-        $info_sheet->setCellValue('A27', $bot_txt);
+        $info_sheet->setCellValue('A26', $bot_txt);
 
         // Set row height and auto-width columns for the sheet
-        for ($r = 1; $r < 25; $r++) {
+        for ($r = 1; $r < 23; $r++) {
             $info_sheet->getRowDimension($r)->setRowHeight(15);
         }
         $info_columns = array('A','B','C','D');
@@ -624,40 +625,39 @@ class SushiSettingController extends Controller
             $info_sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Put settings into output rows array
+        // Put (defined) settings into output rows array
         $data_rows = array();
-        foreach ($settings as $setting) {
-            $data_rows[] = array( 'A' => $setting->inst_id, 'B' => $setting->institution->local_id,
-                                  'C' => $setting->prov_id, 'D' => $setting->status, 'E' => $setting->customer_id,
-                                  'F' => $setting->requestor_id, 'G' => $setting->api_key, 'H' => $setting->extra_args,
-                                  'I' => $setting->institution->name, 'J' => $setting->provider->name );
+        if (!$only_missing) {
+            foreach ($settings as $setting) {
+                $data_rows[] = array( 'A' => $setting->inst_id, 'B' => $setting->institution->local_id,
+                                      'C' => $setting->prov_id, 'D' => $setting->customer_id,
+                                      'E' => $setting->requestor_id, 'F' => $setting->api_key, 'G' => $setting->extra_args,
+                                      'H' => $setting->institution->name, 'I' => $setting->provider->name );
+            }
         }
 
-        // If we're adding missing settings to the export, get and add output data rows
-        // (Only includes settings that are missing for is_active INST <-> PROV pairs)
-        if ( !$exclude_missing ) {
-            // Get ALL known sushisettings inst_id <> prov_id pairs
-            $existing_sushi_pairs = SushiSetting::select('inst_id','prov_id')->get()->map(function ($setting) {
-                return array($setting->inst_id, $setting->prov_id);
-            })->toArray();
-            foreach ($institutions as $inst) {
-                // If inst is inactive, skip it
-                if (!$inst->is_active) continue;
-                foreach ($providers as $prov) {
-                    // If prov is inactive, skip it
-                    if (!$prov->is_active) continue;
-                    // If setting exists, skip it
-                    if (in_array(array($inst->id, $prov->id), $existing_sushi_pairs)) continue;
-                    // Okay, adding the data; get/set connector values
-                    $cnx = array();
-                    $connectors = $prov->connectionFields();
-                    foreach ($connectors as $c) {
-                        $cnx[$c['name']] = ($c['required']) ? '-required-' : '';
-                    }
-                    $data_rows[] = array( 'A' => $inst->id, 'B' => $inst->local_id, 'C' => $prov->id, 'D' => 'Incomplete',
-                                          'E' => $cnx['customer_id'], 'F' => $cnx['requestor_id'], 'G' => $cnx['api_key'],
-                                          'H' => $cnx['extra_args'], 'I' => $inst->name, 'J' => $prov->name );
+        // Add Missing settings to the export, get and add output data rows
+        // Get ALL known sushisettings inst_id <> prov_id pairs
+        $existing_sushi_pairs = SushiSetting::select('inst_id','prov_id')->get()->map(function ($setting) {
+            return array($setting->inst_id, $setting->prov_id);
+        })->toArray();
+        foreach ($institutions as $inst) {
+            // If inst is inactive, skip it
+            if (!$inst->is_active) continue;
+            foreach ($providers as $prov) {
+                // If prov is inactive, skip it
+                if (!$prov->is_active) continue;
+                // If setting exists, skip it
+                if (in_array(array($inst->id, $prov->id), $existing_sushi_pairs)) continue;
+                // Okay, adding the data; get/set connector values
+                $cnx = array();
+                $connectors = $prov->connectionFields();
+                foreach ($connectors as $c) {
+                    $cnx[$c['name']] = ($c['required']) ? '-required-' : '';
                 }
+                $data_rows[] = array( 'A' => $inst->id, 'B' => $inst->local_id, 'C' => $prov->id, 'D' => $cnx['customer_id'],
+                                      'E' => $cnx['requestor_id'], 'F' => $cnx['api_key'], 'G' => $cnx['extra_args'],
+                                      'H' => $inst->name, 'I' => $prov->name );
             }
         }
 
@@ -674,13 +674,12 @@ class SushiSettingController extends Controller
         $inst_sheet->setCellValue('A1', 'Institution ID (CC+ System ID)');
         $inst_sheet->setCellValue('B1', 'Local Institution Identifier');
         $inst_sheet->setCellValue('C1', 'Platform ID (CC+ System ID)');
-        $inst_sheet->setCellValue('D1', 'Status');
-        $inst_sheet->setCellValue('E1', 'Customer ID');
-        $inst_sheet->setCellValue('F1', 'Requestor ID');
-        $inst_sheet->setCellValue('G1', 'API Key');
-        $inst_sheet->setCellValue('H1', 'LEAVE BLANK');
-        $inst_sheet->setCellValue('I1', 'Institution-Name');
-        $inst_sheet->setCellValue('J1', 'Platform-Name');
+        $inst_sheet->setCellValue('D1', 'Customer ID');
+        $inst_sheet->setCellValue('E1', 'Requestor ID');
+        $inst_sheet->setCellValue('F1', 'API Key');
+        $inst_sheet->setCellValue('G1', 'LEAVE BLANK');
+        $inst_sheet->setCellValue('H1', 'Institution-Name');
+        $inst_sheet->setCellValue('I1', 'Platform-Name');
 
         // Put data rows into the sheet
         $row = 2;
@@ -692,7 +691,7 @@ class SushiSettingController extends Controller
         }
 
         // Auto-size the columns
-        $columns = array('A','B','C','D','E','F','G','H','I','J');
+        $columns = array('A','B','C','D','E','F','G','H','I');
         foreach ($columns as $col) {
             $inst_sheet->getColumnDimension($col)->setAutoSize(true);
         }
@@ -817,10 +816,9 @@ class SushiSettingController extends Controller
                 continue;
             }
 
-            // Put settings into an array (default status to Enabled) for the update call.
-            $_status = (in_array($row[3], array('Enabled','Disabled','Suspended','Incomplete'))) ? $row[3] : "Enabled";
-            $_args = array('status' => $_status, 'customer_id' => $row[4], 'requestor_id' => $row[5], 'api_key' => $row[6],
-                           'extra_args' => $row[7]);
+            // Put settings into an array (assumes status should be Enabled) for the update call.
+            $_args = array('status' => 'Enabled', 'customer_id' => $row[3], 'requestor_id' => $row[4], 'api_key' => $row[5],
+                           'extra_args' => $row[6]);
 
             // Mark any missing connectors
             $missing_count = 0;
@@ -836,18 +834,16 @@ class SushiSettingController extends Controller
                 }
             }
 
-            // Unless setting is being Disabled, review and/or update status before saving
-            if ($_status != "Disabled") {
-                if ($current_inst->is_active && $current_prov->is_active) {
-                    if ( $missing_count==0 ) {
-                        $_args['status'] = 'Enabled';
-                    } else {
-                        $_args['status'] = 'Incomplete';
-                        $incomplete++;
-                    }
+            // Override default status if credentials missing or inst/prov are inactive
+            if ($current_inst->is_active && $current_prov->is_active) {
+                if ( $missing_count==0 ) {
+                    $_args['status'] = 'Enabled';
                 } else {
-                  $_args['status'] = 'Suspended';
+                    $_args['status'] = 'Incomplete';
+                    $incomplete++;
                 }
+            } else {
+              $_args['status'] = 'Suspended';
             }
 
             // Update or create the settings
