@@ -245,13 +245,12 @@
               <strong>In order to retrieve all records, all filters must be cleared first.</strong>
             </p>
             <p>
-              <strong>Note:&nbsp; By default, SUSHI credential exports will include ALL active institutions and platforms
-                including institution-platform pairs that are not yet defined. Excluding instution-platform pairs with missing
-                credentials will limit the exported records to only pairs with defined credentials. Output fields in the export
+              <strong>Note:&nbsp; By default, SUSHI credential exports will include ALL possible institutions and platforms
+                including institution-platform pairs that are not yet defined. Limiting to institution-platform pairs that have
+                no credentials set (checkbox below) exports a list of the missing credentials. Output fields in the export
                 will be labelled where values are required or missing.</strong>
             </p>
-            <v-checkbox v-model="exclude_missing" label="Exclude Institution-Platform pairs with missing credentials?"
-                        dense
+            <v-checkbox v-model="only_missing" label="Limit to Institution-Platform pairs with missing credentials?" dense
             ></v-checkbox>
           </v-container>
         </v-card-text>
@@ -300,7 +299,7 @@
                 exportDialog: false,
                 sushiDialog: false,
                 csv_upload: null,
-                exclude_missing: false,
+                only_missing: false,
                 settings: [],
                 mutable_options: {},
                 mutable_groups: [],
@@ -611,7 +610,7 @@
           exportSubmit (event) {
               this.success = '';
               this.failure = '';
-              let url = "/sushi-export?exclude_missing="+this.exclude_missing;
+              let url = "/sushi-export?only_missing="+this.only_missing;
               if (this.filters['inst'].length > 0 || this.filters['group'] != 0 || this.filters['harv_stat'].length >0 ||
                   this.filters['prov'].length > 0) {
                   let _filters = JSON.stringify(this.filters);
