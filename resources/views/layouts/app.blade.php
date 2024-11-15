@@ -21,7 +21,7 @@
     @if ( auth()->check() )
       @if ( auth()->user()->hasRole('ServerAdmin') )
         <topnav :user="{{ json_encode(Auth::user()->with('roles','institution')->first()->toArray()) }}"
-                :consortia="{{ json_encode(\App\Consortium::get(['name','ccp_key'])->toArray() ) }}"
+                :consortia="{{ json_encode(\App\Consortium::orderby('name')->get(['name','ccp_key'])->toArray() ) }}"
                 :ccp_key="{{ json_encode( Session::get('ccp_con_key') ) }}"
         ></topnav>
       @else
