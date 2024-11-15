@@ -200,6 +200,7 @@ class ReportProcessor extends Command
                 $harvest->error_id = 0;
                 $harvest->status = 'Success';
                 $harvest->rawfile = $rawfile;
+                $harvest->save();
 
                // Make sure the path for the output file exists
                 $path = $consortium_root . '/' . $inst_id . '/' . $prov_id;
@@ -216,11 +217,9 @@ class ReportProcessor extends Command
                     if (!is_readable($newName)) {
                         $this->line ($ts  . " " . $ident . "Rename/Move operation for JSON source file failed: " . $jsonFile);
                         $harvest->rawfile = null;
+                        $harvest->save();
                     }
                 }
-
-               // Update the harvest record
-                $harvest->save();
 
                // Print confirmation line
                 $this->line($ts . " " . $ident . $harvest->sushiSetting->provider->name . " : " . $yearmon . " : " .
