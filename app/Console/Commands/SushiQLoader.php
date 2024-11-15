@@ -195,10 +195,10 @@ class SushiQLoader extends Command
         $harvests = HarvestLog::where('status','New')->orWhere('status','ReQueued')->get();
         foreach ($harvests as $harvest) {
             try {
-                $newjob = SushiQueueJob::create(['consortium_id' => $consortium->id,
-                                                 'harvest_id' => $harvest->id,
-                                                 'replace_data' => $replace
-                                               ]);
+                SushiQueueJob::insert(['consortium_id' => $consortium->id,
+                                       'harvest_id' => $harvest->id,
+                                       'replace_data' => $replace,
+                                       'created_at' => $ts]);
             } catch (QueryException $e) {
                 $errorCode = $e->errorInfo[1];
                 if ($errorCode == '1062') {
