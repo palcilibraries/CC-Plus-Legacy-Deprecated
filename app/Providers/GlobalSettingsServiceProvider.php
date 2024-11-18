@@ -44,6 +44,14 @@ class GlobalSettingsServiceProvider extends ServiceProvider
             $values = array();
             try {
               $data = $settings->where('type','mail')->pluck('value', 'name')->all();
+              // clear "mail_" prefix off the array keys if they exist
+              foreach ($data as $k => $v) {
+                  $newKey = preg_replace('/^(mail_)/', '', $k);
+                  if ($newKey !== $k) {
+                      $data[$newKey] = $v;
+                      unset($data[$k]);
+                  }
+              }
               $data['from'] = array('address' => $data['from_address'], 'name' => $data['from_name']);
               $values = array_except($data,['from_address','from_name']);
             } catch (\Exception $e) { }
