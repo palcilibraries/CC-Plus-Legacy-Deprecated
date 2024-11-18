@@ -20,6 +20,7 @@ class GlobalSetting extends Model
      *
      * @var array
      */
-      protected $fillable = ['id', 'name', 'value'];
+      protected $fillable = ['id', 'type', 'name', 'value'];
+      protected $casts = ['id'=>'integer'];
 
 }

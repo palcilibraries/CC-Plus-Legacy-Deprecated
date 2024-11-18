@@ -15,9 +15,10 @@ class CreateGlobalSettingsTable extends Migration
     {
         Schema::create('global_settings', function (Blueprint $table) {
             $table->Increments('id');
+            $table->string('type',6); // config or mail
             $table->string('name');
-            $table->index('name');
             $table->string('value');
+            $table->index('name');
         });
     }
 
