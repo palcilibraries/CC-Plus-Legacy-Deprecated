@@ -44,9 +44,10 @@ class GlobalSettingController extends Controller
       }
 
       // update and save them all
-      foreach ($settings as $setting) {
-          if (isset($input['all_globals'][$setting->name])) {
-              $setting->value = $input['all_globals'][$setting->name];
+      foreach ($input['all_globals'] as $var) {
+          $setting = $settings->where('name', $var['name'])->first();
+          if ($setting) {
+              $setting->value = $var['value'];
               $setting->save();
           }
       }
