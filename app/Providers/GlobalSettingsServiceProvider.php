@@ -27,15 +27,28 @@ class GlobalSettingsServiceProvider extends ServiceProvider
      */
     public function boot(Factory $cache, GlobalSetting $settings)
     {
-        $settings = $cache->remember('ccplus', 60, function() use ($settings)
+        // ccplus config settings from global_settings table
+        $config_settings = $cache->remember('ccplus', 60, function() use ($settings)
         {
             $values = array();
             try {
-              $values = $settings->pluck('value', 'name')->all();
+              $values = $settings->where('type','config')->pluck('value', 'name')->all();
             } catch (\Exception $e) { }
             return $values;
         });
-        config()->set('ccplus', $settings);
-    }
+        config()->set('ccplus', $config_settings);
 
+        // mail settings from global_settings table
+        $mail_settings = $cache->remember('mail', 60, function() use ($settings)
+        {
+            $values = array();
+            try {
+              $data = $settings->where('type','mail')->pluck('value', 'name')->all();
+              $data['from'] = array('address' => $data['from_address'], 'name' => $data['from_name']);
+              $values = array_except($data,['from_address','from_name']);
+            } catch (\Exception $e) { }
+            return $values;
+        });
+        config()->set('mail', $mail_settings);
+    }
 }
