@@ -43,7 +43,7 @@
       provider_filters: { type:Object, default: () => {} },
       master_reports: { type:Array, default: () => [] },
       all_connectors: { type:Array, default: () => [] },
-      settings: { type:Object, default: () => {} },
+      settings: { type:Array, default: () => [] },
     },
     data () {
       return {

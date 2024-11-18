@@ -2,12 +2,23 @@
   <div class="d-flex mt-2">
     <form>
       <v-row class="d-flex ma-0" no-gutters>
-        <template v-for="key in Object.keys(this.mutable_settings)">
-          <v-col class="d-flex px-2 justify-end" cols="2"><strong>{{ key }}</strong></v-col>
-          <v-col class="d-flex px-2" cols="4">
-            <v-text-field v-model="mutable_settings[key]" :label="key" outlined dense></v-text-field>
-          </v-col>
-        </template>
+        <v-col v-for="item in config_settings" class="d-flex pa-2" cols="4" :key="item.id">
+          <v-text-field v-model="item.value" :label="item.name" outlined dense
+                        :disabled="item.name=='root_url' || item.name=='reports_path'"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row class="d-flex ma-0" no-gutters>
+        <h3>Mail Settings</h3>
+      </v-row>
+      <v-row class="d-flex ma-0" no-gutters>
+        <v-col v-for="item in mail_settings"  class="d-flex px-2" cols="4" :key="item.id">
+          <v-text-field v-if="item.name=='password'" v-model="item.value" name="password" label="password" outlined dense
+                        :type="pw_show ? 'text' : 'password'" @click:append="pw_show = !pw_show"
+                        :append-icon="pw_show ? 'mdi-eye-off' : 'mdi-eye'">
+          </v-text-field>
+          <v-text-field v-else v-model="item.value" :label="item.name" outlined dense></v-text-field>
+        </v-col>
       </v-row>
       <v-row v-if="success!=''" class="status-message">
         <span class="good" role="alert" v-text="success"></span>
@@ -28,21 +39,24 @@
   window.Form = Form;
   export default {
     props: {
-      settings: { type:Object, default: () => {} },
+      settings: { type:Array, default: () => [] },
     },
     data () {
       return {
         success: '',
         failure: '',
-        mutable_settings: { ...this.settings },
+        config_settings: [],
+        mail_settings: [],
+        pw_show: false,
       }
     },
     methods: {
         formSubmit (event) {
             this.success = '';
             this.failure = '';
+            var combined_settings = this.config_settings.concat(this.mail_settings);
             axios.post('/server/config', {
-                all_globals: this.mutable_settings
+                all_globals: combined_settings
             })
             .then( (response) => {
                 if (response.data.result) {
@@ -55,6 +69,8 @@
         },
     },
     mounted() {
+      this.config_settings = this.settings.filter( s=> s.type=='config' );
+      this.mail_settings = this.settings.filter( s=> s.type=='mail' );
       console.log('Server Settings component mounted.');
     }
   }
