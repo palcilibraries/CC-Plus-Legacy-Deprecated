@@ -13,10 +13,13 @@
       </v-row>
       <v-row class="d-flex ma-0" no-gutters>
         <v-col v-for="item in mail_settings"  class="d-flex px-2" cols="4" :key="item.id">
-          <v-text-field v-if="item.name=='password'" v-model="item.value" name="password" label="password" outlined dense
+          <v-text-field v-if="item.name=='mail_password'" v-model="item.value" :label="item.name" outlined dense
                         :type="pw_show ? 'text' : 'password'" @click:append="pw_show = !pw_show"
-                        :append-icon="pw_show ? 'mdi-eye-off' : 'mdi-eye'">
+                        :append-icon="pw_show ? 'mdi-eye-off' : 'mdi-eye'" autocomplete="new-mail-password">
           </v-text-field>
+          <v-text-field v-else-if="item.name=='mail_username'" v-model="item.value" :label="item.name" outlined dense
+                        autocomplete="new-mail-username"
+          ></v-text-field>
           <v-text-field v-else v-model="item.value" :label="item.name" outlined dense></v-text-field>
         </v-col>
       </v-row>
