@@ -99,7 +99,7 @@ class AuditSushiSettings extends Command
 
         // Setup a new sheet for the data rows
         $settings_sheet->setCellValue('A1', 'Platform Name');
-        $settings_sheet->setCellValue('A1', 'Institution Name');
+        $settings_sheet->setCellValue('B1', 'Institution Name');
         $settings_sheet->setCellValue('C1', 'JSON Platform Value');
         $settings_sheet->setCellValue('D1', 'JSON Institution Value');
         $row = 2;
@@ -133,7 +133,7 @@ class AuditSushiSettings extends Command
                     }
 
                     // if we got values, go on to the next sushi setting (otherwise, try another harvest)
-                    if (substr($json_plat,0,3)!="no-" && substr($json_inst,0,3)) {
+                    if (substr($json_plat,0,3)!="no-" && substr($json_inst,0,3)!="no-") {
                         break;
                     }
                 }
