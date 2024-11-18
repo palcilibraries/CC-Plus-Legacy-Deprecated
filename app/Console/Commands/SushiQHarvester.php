@@ -13,7 +13,7 @@ use App\FailedHarvest;
 use App\HarvestLog;
 use App\CcplusError;
 use App\Severity;
-use App\Alert;
+// use App\Alert;
 use App\GlobalProvider;
 use App\ConnectionField;
  //
@@ -370,9 +370,9 @@ class SushiQHarvester extends Command
 
                        // If we're out of retries, the harvest fails and we set an Alert
                         if ($job->harvest->attempts >= $max_retries) {
-                            $job->harvest->status = 'Fail';
-                            Alert::insert(['yearmon' => $yearmon, 'prov_id' => $setting->prov_id,
-                                           'harvest_id' => $job->harvest->id, 'status' => 'NoRetries', 'created_at' => $ts]);
+                            $job->harvest->status = 'NoRetries';
+                            // Alert::insert(['yearmon' => $yearmon, 'prov_id' => $setting->prov_id,
+                            //                'harvest_id' => $job->harvest->id, 'status' => 'Active', 'created_at' => $ts]);
                         } else {
                             $job->harvest->status = 'ReQueued'; // ReQueue by default
                         }
