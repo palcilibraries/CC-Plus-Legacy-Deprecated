@@ -36,8 +36,8 @@ class GlobalAdminController extends Controller
         $all_connectors = $allConnectors->toArray();
 
         // Get global settings, minus the server admin credentials
-        $skip_vars = array('server_admin','server_admin_pass');
-        $settings = GlobalSetting::whereNotIn('name',$skip_vars)->pluck('value', 'name')->toArray();
+        $skip_vars = array('server_admin','server_admin_pass','max_name_length');
+        $settings = GlobalSetting::whereNotIn('name',$skip_vars)->get()->toArray();
 
         // Get global providers and preserve the current instance database setting
         $gp_data = GlobalProvider::orderBy('name', 'ASC')->get();
