@@ -45,7 +45,7 @@ class AuditSushiSettings extends Command
      */
     public function handle()
     {
-        // Allow input consortium to be an ID or Key
+        $ident = "Sushi Settings Auditor";
         $ts = date("Y-m-d H:i:s") . " ";
         $conarg = $this->argument('consortium');
         $consortium = Consortium::find($conarg);
@@ -154,7 +154,7 @@ class AuditSushiSettings extends Command
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save($fileName);
 
-        // all done
+        // all done 
         $this->line(' ');
         $this->line('Saved spreadsheet in : ' . $fileName);
         return 1;
