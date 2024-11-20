@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Console;
+use App\Consortium;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
+{
+    /**
+     * The Artisan commands provided by your application.
+     *
+     * @var array
+     */
+    protected $commands = [
+        Commands\ConsortiumCommand::class,
+        Commands\C5Test::class,
+        Commands\SushiBatch::class,
+        Commands\SushiQLoader::class,
+        Commands\SushiQWorker::class,
+        Commands\DataArchiveCommand::class,
+        Commands\DataPurgeCommand::class,
+    ];
+
+    /**
+     * Define the application's command schedule.
+     *
+     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @return void
+     */
+    protected function schedule(Schedule $schedule)
+    {
+    /*----------------------------------------------------------------------------------
+     * Example scheduler setup
+     * A single harvesting process starts every 10 minutes to harvest all jobs in the
+     * ccplus_global.jobs table (this can hold jobs across multiple instances.)
+     * 
+     * Two consortium-specific processes are also scheduled.
+     *      - sushiloader runs once/day and loads jobs based on platform day_of_month.
+     *      - reportprocessor runs every 5 minutes and looks for jobs in the consortium
+     *        0_unprocessed folder to process harvested JSON report files and load the
+     *        data into the XX_report_data tables.
+     *----------------------------------------------------------------------------------
+     */
+        $consortia = Consortium::where('enable_harvesting',1)->get(['id','ccp_key']);
+        if ($consortia) {
+            // Schedule the server-wide harvester
+            $schedule->command('ccplus:sushiharvester')->runInBackground()->everyTenMinutes()->withoutOverlapping()
+                     ->appendOutputTo('/var/log/ccplus/harvests.log');
+            /*
+             * Schedule a loader and processor for each consortium in the server
+             * (dorder applies to reportprocessor as it walks downloaded JSON files)
+             */
+            $dorder = " d";      // set to " d" for display order from reports class, or "" for FIFO
+            foreach ($consortia as $con) {
+                $schedule->command('ccplus:sushiloader ' . $con->id)->daily();
+                $processorCommand = "ccplus:reportprocessor " . $con->id . $dorder . " RP_" . $con->ccp_key;
+                $schedule->command($processorCommand)->runInBackground()->everyFiveMinutes()
+                         ->withoutOverlapping()->appendOutputTo('/var/log/ccplus/harvests.log');
+            }
+        }
+    }
+
+    /**
+     * Register the commands for the application.
+     *
+     * @return void
+     */
+    protected function commands()
+    {
+        $this->load(__DIR__ . '/Commands');
+        require base_path('routes/console.php');
+    }
+}
