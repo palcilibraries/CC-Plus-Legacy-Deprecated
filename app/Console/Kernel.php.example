@@ -37,7 +37,7 @@ class Kernel extends ConsoleKernel
      * 
      * Two consortium-specific processes are also scheduled.
      *      - sushiloader runs once/day and loads jobs based on platform day_of_month.
-     *      - reportprocessor runs every 5 minutes and looks for jobs in the consortium
+     *      - reportprocessor runs every 10 minutes and looks for jobs in the consortium
      *        0_unprocessed folder to process harvested JSON report files and load the
      *        data into the XX_report_data tables.
      *----------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ class Kernel extends ConsoleKernel
             foreach ($consortia as $con) {
                 $schedule->command('ccplus:sushiloader ' . $con->id)->daily();
                 $processorCommand = "ccplus:reportprocessor " . $con->id . $dorder . " RP_" . $con->ccp_key;
-                $schedule->command($processorCommand)->runInBackground()->everyFiveMinutes()
+                $schedule->command($processorCommand)->runInBackground()->everyTenMinutes()
                          ->withoutOverlapping()->appendOutputTo('/var/log/ccplus/harvests.log');
             }
         }
