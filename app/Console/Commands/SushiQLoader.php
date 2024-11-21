@@ -87,8 +87,7 @@ class SushiQLoader extends Command
         $rept = is_null($this->option('report')) ? 'ALL' : $this->option('report');
         $replace = ($this->option('keep')) ? false : true;
 
-       // Timestamp is now, set yearmon to last month (default) or input value
-        $ts = date("Y-m-d H:i:s");
+       // Set yearmon to last month (default) or input value
         if (strtolower($month) == 'lastmonth') {
             $override_dom = false;
             $yearmon = date("Y-m", mktime(0, 0, 0, date("m") - 1, date("d"), date("Y")));
@@ -161,7 +160,7 @@ class SushiQLoader extends Command
 
                // Loop through all the reports
                 foreach ($reports as $report) {
-
+                    $ts = date("Y-m-d H:i:s");
                    // Create new HarvestLog record; catch and prevent duplicates
                     try {
                         HarvestLog::insert(['status' => 'New', 'sushisettings_id' => $setting->id,
@@ -194,6 +193,7 @@ class SushiQLoader extends Command
        // -----------------------------------------------
         $harvests = HarvestLog::where('status','New')->orWhere('status','ReQueued')->get();
         foreach ($harvests as $harvest) {
+            $ts = date("Y-m-d H:i:s");
             try {
                 SushiQueueJob::insert(['consortium_id' => $consortium->id,
                                        'harvest_id' => $harvest->id,
