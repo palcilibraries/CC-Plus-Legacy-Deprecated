@@ -18,7 +18,8 @@ class CreateConsortiaTable extends Migration
             $table->string('ccp_key', 13)->unique();
             $table->string('name');
             $table->string('email')->nullable();
-            $table->boolean('is_active')->default(false);
+            $table->boolean('is_active')->default(true);
+            $table->boolean('enable_harvesting')->default(true);
             $table->timestamps();
         });
     }
