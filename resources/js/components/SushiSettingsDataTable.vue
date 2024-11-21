@@ -11,6 +11,9 @@
       <v-col class="d-flex px-2" cols="2">
         <a @click="exportDialog=true;"><v-icon title="Export to Excel">mdi-microsoft-excel</v-icon>&nbsp; Export to Excel</a>
       </v-col>
+      <v-col class="d-flex px-2" cols="2">
+        <a @click="auditDialog=true;"><v-icon title="Generate Audit Spreadsheet">mdi-microsoft-excel</v-icon>&nbsp; Audit Settings</a>
+      </v-col>
     </v-row>
     <v-row class="d-flex pa-1 align-center" no-gutters>
       <v-col v-if="is_admin" class="d-flex px-2 align-center" cols="2">
@@ -264,6 +267,32 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="auditDialog" max-width="600px">
+      <v-card>
+        <v-card-title>Audit SUSHI Credentials</v-card-title>
+        <v-card-text>
+          <v-container grid-list-md>
+            <p>
+              Generates a spreadsheet showing the institution and platform pairs having defined SUSHI connnections, one per
+              row. For each row, the system retrieves the Institution, Created_BY and Plaform values from saved JSON datafile(s)
+              (if they exist), and provides a means of detecting mismatched credentials.
+            </p>
+            <p>
+              The output records will be limited based on values defined for filters in the user interface.
+              <strong>In order to retrieve all records, all filters must be cleared first.</strong>
+            </p>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-col class="d-flex">
+            <v-btn small color="primary" type="submit" @click="auditSubmit">Run Audit</v-btn>
+          </v-col>
+          <v-col class="d-flex">
+            <v-btn small type="button" color="primary" @click="auditDialog=false">Cancel</v-btn>
+          </v-col>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="sushiDialog" content-class="ccplus-dialog">
       <sushi-dialog :dtype="sushiDialogType" :institutions="sushi_insts" :providers="sushi_provs" :setting="current_setting"
                     :all_settings="settings" @sushi-done="sushiDialogDone" :key="sdKey"
@@ -298,6 +327,7 @@
                 importDialog: false,
                 exportDialog: false,
                 sushiDialog: false,
+                auditDialog: false,
                 csv_upload: null,
                 only_missing: false,
                 settings: [],
@@ -618,6 +648,18 @@
               }
               window.location.assign(url);
               this.exportDialog = false;
+          },
+          auditSubmit (event) {
+              this.success = '';
+              this.failure = '';
+              let url = "/sushi-audit";
+              if (this.filters['inst'].length > 0 || this.filters['group'] != 0 || this.filters['harv_stat'].length >0 ||
+                  this.filters['prov'].length > 0) {
+                  let _filters = JSON.stringify(this.filters);
+                  url += "?filters="+_filters;
+              }
+              window.location.assign(url);
+              this.auditDialog = false;
           },
           processBulk() {
               this.success = "";

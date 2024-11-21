@@ -16,6 +16,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Crypt;
 // use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 class SushiSettingController extends Controller
@@ -871,4 +873,189 @@ class SushiSettingController extends Controller
         }
         return response()->json(['result' => true, 'msg' => $msg, 'settings' => $settings]);
     }
+
+    /**
+     * Export sushi settings records from the database.
+     *
+     * @param  array $filters // (Optional) - limit to an inst or provider
+     */
+    public function audit(Request $request)
+    {
+        // Only Admins and Managers can audit settings
+        $thisUser = auth()->user();
+        abort_unless($thisUser->hasAnyRole(['Admin','Manager']), 403);
+
+        // Set JSON report data file path
+        $report_path = null;
+        $conso = Consortium::where('ccp_key',session('ccp_con_key'))->first();
+        if (!$conso) {
+            return response()->json(['result'=>false, 'msg'=>'Error getting current instance data']);
+        }
+        if (!is_null(config('ccplus.reports_path'))) {
+            $report_path = config('ccplus.reports_path') . $conso->id . '/';
+        } else {
+            return response()->json(['result'=>false, 'msg'=>'Global Setting for reports_path is undefined - Stopping!']);
+        }
+
+        // Handle and validate inputs
+        $filters = null;
+        if ($request->filters) {
+            $filters = json_decode($request->filters, true);
+        } else {
+            $filters = array('inst' => [], 'prov' => [], 'harv_stat' => [], 'group' => 0);
+        }
+
+        // Admins have export using group filter, manager can only export their own inst
+        $group = null;
+        if ($thisUser->hasRole("Admin")) {
+            // If group-filter is set, pull the instIDs for the group and set as the "inst" filter
+            if ($filters['group'] > 0) {
+                $group = InstitutionGroup::with('institutions')->where('id',$filters['group'])->first();
+                if ($group) {
+                    if ($group->institutions) {
+                        $filters['inst'] = $group->institutions->pluck('id')->toArray();
+                    }
+                }
+            }
+            $provider_insts = array(1);   //default to consortium providers
+        } else {
+            $filters['inst'] = array($thisUser->inst_id);
+            $provider_insts = array(1,$thisUser->inst_id);
+        }
+
+        // Finalize filters
+        $inst_filters = [];
+        if (count($filters['inst']) > 0) {
+            $inst_filters = $filters['inst'];
+        }
+        $prov_filters = [];
+        $global_ids = Provider::whereIn('inst_id', $provider_insts)->pluck('global_id')->toArray();
+        if (count($filters['prov'])  > 0) {
+            $prov_filters = GlobalProvider::whereIn('id', $filters['prov'])->whereIn('id', $global_ids)
+                                          ->pluck('id')->toArray();
+        }
+        $status_filters = (count($filters['harv_stat'])>0) ? $filters['harv_stat'] : [];
+        $status_name = (count($filters['harv_stat']) == 1) ? $filters['harv_stat'][0] : "";
+
+        // Get all Sushi Settings with successful harvestlogs that have a rawfile set
+        $settings = SushiSetting::with(['provider','institution',
+                                        'harvestLogs' => function ($qry) {
+                                            $qry->where('status','Success')->whereNotNull('rawfile')->orderBy('yearmon','DESC');
+                                        }
+                                ])
+                                ->when(count($inst_filters)>0, function ($query) use ($inst_filters) {
+                                    return $query->whereIn('inst_id', $inst_filters);
+                                })
+                                ->when(count($prov_filters)>0, function ($query) use ($prov_filters) {
+                                    return $query->whereIn('prov_id', $prov_filters);
+                                })
+                                ->when(count($status_filters)>0, function ($qry) use ($status_filters) {
+                                    return $qry->whereIn('status', $status_filters);
+                                })
+                                ->get();
+
+        if (!$settings) {
+            return response()->json(['result'=>false, 'msg'=>'No matching settings to audit.']);
+        }
+
+        // Set name(s) if only one inst or provider being audited
+        $first_setting = $settings->first();
+        $inst_name = (count($inst_filters)==1) ? $first_setting->institution->name : "";
+        $prov_name = (count($prov_filters)==1) ? $first_setting->provider->name : "";
+
+        // Setup the spreadsheet and build the static ReadMe sheet
+        $spreadsheet = new Spreadsheet();
+        $settings_sheet = $spreadsheet->getActiveSheet();
+        $settings_sheet->setTitle('SUSHI Settings');
+
+        // Setup a new sheet for the data rows
+        $settings_sheet->setCellValue('A1', 'Platform Name');
+        $settings_sheet->setCellValue('B1', 'JSON Platform Value');
+        $settings_sheet->setCellValue('C1', 'JSON Item Platform Value');
+        $settings_sheet->setCellValue('D1', 'Institution Name');
+        $settings_sheet->setCellValue('E1', 'JSON Institution Value');
+        $row = 2;
+
+        // Loop over the settings
+        foreach ($settings as $setting) {
+            $settings_sheet->setCellValue('A'.$row, $setting->provider->name);
+            $settings_sheet->setCellValue('D'.$row, $setting->institution->name);
+            $json_plat = 'no-JSON-found'; // default to no-data-found
+            $json_inst = 'no-JSON-found'; // default to no-data-found
+            $json_item_plat = 'no-Value-found'; // default to no-data-found
+
+            // Find the most-recent rawfile in the harvestlogs for this setting
+            if ($setting->harvestLogs) {
+                foreach ($setting->harvestLogs as $harv) {
+                    $jsonFile = $report_path . '/' . $setting->inst_id . '/' . $setting->prov_id . '/' . $harv->rawfile;
+                    if (file_exists($jsonFile)) {
+                        // decrypt and decompress the file
+                        $json = json_decode(bzdecompress(Crypt::decrypt(File::get($jsonFile), false)));
+                        // get JSON fields
+                        if (isset($json->Report_Header)) {
+                           $header = $json->Report_Header;
+                           $json_plat = (isset($header->Created_By)) ? $header->Created_By : "no-Created_By";
+                           $json_inst = (isset($header->Institution_Name)) ? $header->Institution_Name : "no-Institution_Name";
+                           if (isset($json->Report_Items) && is_array($json->Report_Items)) {
+                                if (isset($json->Report_Items[0]->Platform)) {
+                                    $json_item_plat = $json->Report_Items[0]->Platform;
+                                }
+                           }
+                        } else {
+                            $json_plat = 'no-Report_Header';
+                            $json_inst = 'no-Report_Header';
+                        }
+                    }
+
+                    // if we got values, go on to the next sushi setting (otherwise, try another harvest)
+                    if (substr($json_plat,0,3)!="no-" && substr($json_inst,0,3)!="no-") {
+                        break;
+                    }
+                }
+            }
+            $settings_sheet->setCellValue('B'.$row, $json_plat);
+            $settings_sheet->setCellValue('C'.$row, $json_item_plat);
+            $settings_sheet->setCellValue('E'.$row, $json_inst);
+            $row++;
+        }
+        // Auto-size the columns
+        $columns = array('A','B','C','D','E');
+        foreach ($columns as $col) {
+            $settings_sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+         // Give the file a meaningful filename
+         $fileName = "CCplus";
+         if (!$inst_filters && !$prov_filters && count($status_filters)==0 && is_null($group)) {
+             $fileName .= "_" . session('ccp_con_key', '') . "_All";
+         } else {
+             if (!$inst_filters) {
+                 $fileName .= "_AllInstitutions";
+             } else {
+                 if ($group) {
+                     $fileName .= "_" . preg_replace('/ /', '', $group->name);
+                 } else {
+                     $fileName .= ($inst_name == "") ? "_SomeInstitutions": "_" . preg_replace('/ /', '', $inst_name);
+                 }
+             }
+             if (!$prov_filters) {
+                 $fileName .= "_AllPlatforms";
+             } else {
+                 $fileName .= ($prov_name == "") ? "_SomePlatforms": "_" . preg_replace('/ /', '', $prov_name);
+             }
+             if ( count($status_filters) > 0) {
+                 $fileName .= ($status_name == "") ? "_SomeStauses" : "_".$status_name;
+             }
+         }
+         $fileName .= "_SushiAudit.xlsx";
+
+        // redirect output to client
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename=' . $fileName);
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+
+    }
+
 }
