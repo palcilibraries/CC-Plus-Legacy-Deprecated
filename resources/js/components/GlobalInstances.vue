@@ -8,18 +8,14 @@
       <span v-if="failure" class="fail" role="alert" v-text="failure"></span>
     </div>
     <v-data-table :headers="con_headers" :items="mutable_consortia" item-key="id" disable-sort
-                  :hide-default-footer="hide_user_footer" :key="'CDT'+dtKey">
-      <template v-slot:item="{ item }">
-        <tr>
-          <td>{{ item.ccp_key }}</td>
-          <td>{{ item.name }}</td>
-          <td><a target="_blank" :href="'mailto:'+item.email">{{ item.email }}</a></td>
-          <td>
-            <v-icon v-if="!consoDialog" title="Edit Instance Settings" @click="editForm(item.id)">mdi-cog-outline</v-icon>
-            &nbsp;
-            <v-icon title="Delete Instance" @click="destroy(item.id)">mdi-trash-can-outline</v-icon>
-          </td>
-        </tr>
+                  :hide-default-footer="hide_user_footer" :key="dtKey">
+      <template v-slot:item.action="{ item }">
+        <v-btn v-if="!consoDialog" icon @click="editForm(item.id)">
+          <v-icon title="Edit Instance Settings">mdi-cog-outline</v-icon>
+        </v-btn>
+        <v-btn icon @click="destroy(item.id)">
+          <v-icon title="Delete Instance">mdi-trash-can-outline</v-icon>
+        </v-btn>
       </template>
     </v-data-table>
     <v-dialog v-model="consoDialog" content-class="ccplus-dialog">
@@ -70,6 +66,13 @@
               <v-col class="d-flex px-2" cols="4">
                 <v-switch v-model="form.is_active" :value="current_consortium.is_active" label="Active?" dense></v-switch>
               </v-col>
+              <v-col class="d-flex px-2" cols="6">
+                <v-switch v-model="form.enable_harvesting" :value="current_consortium.enable_harvesting"
+                          label="Enable Harvesting" dense
+                ></v-switch>
+              </v-col>
+            </v-row>
+            <v-row class="d-flex mx-2 align-center">
               <v-col class="d-flex px-2" cols="4">
                 <v-btn x-small color="primary" @click="formSubmit" :disabled="!formValid">Save Consortium</v-btn>
               </v-col>
@@ -99,8 +102,9 @@
         con_headers: [
             { text: 'Database Key', value: 'ccp_key' },
             { text: 'Name', value: 'name' },
+            { text: 'Is Harvester', value: 'is_harvester', align: 'center' },
             { text: 'Email', value: 'email' },
-            { text: '', value: 'data-table-expand' },
+            { text: '', value: 'action', align: 'center', sortable: false },
         ],
         dtKey: 1,
         hide_user_footer: true,
@@ -115,6 +119,7 @@
             name: '',
             email: '',
             is_active: 1,
+            enable_harvesting: 1,
             admin_user: 'Administrator',
             admin_pass: '',
             admin_confirm_pass: '',
@@ -213,6 +218,7 @@
           this.form.ccp_key = this.current_consortium.ccp_key;
           this.form.name = this.current_consortium.name;
           this.form.is_active = this.current_consortium.is_active;
+          this.form.enable_harvesting = this.current_consortium.enable_harvesting;
           this.form.email = this.current_consortium.email;
           this.form.admin_user = 'Administrator';
           this.form.admin_pass = '';
@@ -226,11 +232,12 @@
           this.success = '';
           this.dialogError = '';
           this.dialogType = "create";
-          this.current_consortium = {ccp_key: '', name: '', email: '', is_active: 1};
+          this.current_consortium = {ccp_key: '', name: '', email: '', is_active: 1, enable_harvesting: 1};
           this.form.ccp_key = '';
           this.form.name = '';
           this.form.email = '';
           this.form.is_active = 1;
+          this.form.enable_harvesting = 1;
           this.form.admin_user = 'Administrator';
           this.form.admin_pass = '';
           this.form.admin_confirm_pass = '';
