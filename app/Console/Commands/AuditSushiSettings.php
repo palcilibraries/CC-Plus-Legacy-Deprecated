@@ -79,16 +79,15 @@ class AuditSushiSettings extends Command
         }
         $consortium_root = $report_path . $consortium->id . '/';
 
-        // Get all Sushi Settings that have last_harvest set
-        $settings = SushiSetting::whereHas('harvestLogs')
-                                ->with(['provider','institution',
+        // Get all Sushi Settings with successful harvestlogs that have a rawfile set
+        $settings = SushiSetting::with(['provider','institution',
                                         'harvestLogs' => function ($qry) {
                                             $qry->where('status','Success')->whereNotNull('rawfile')->orderBy('yearmon','DESC');
                                         }
                                       ])
-                                ->whereNotNull('last_harvest')->get();
+                                ->get();
         if (!$settings) {
-            $this->line('No settings with last_harvest set .. quitting.');
+            $this->line('No settings to audit.');
             return 0;
         }
 
@@ -99,9 +98,10 @@ class AuditSushiSettings extends Command
 
         // Setup a new sheet for the data rows
         $settings_sheet->setCellValue('A1', 'Platform Name');
-        $settings_sheet->setCellValue('B1', 'Institution Name');
-        $settings_sheet->setCellValue('C1', 'JSON Platform Value');
-        $settings_sheet->setCellValue('D1', 'JSON Institution Value');
+        $settings_sheet->setCellValue('B1', 'JSON Platform Value');
+        $settings_sheet->setCellValue('C1', 'JSON Item Platform Value');
+        $settings_sheet->setCellValue('D1', 'Institution Name');
+        $settings_sheet->setCellValue('E1', 'JSON Institution Value');
         $row = 2;
 
         // Loop over the settings
@@ -110,9 +110,10 @@ class AuditSushiSettings extends Command
         foreach ($settings as $setting) {
             $bar->advance();
             $settings_sheet->setCellValue('A'.$row, $setting->provider->name);
-            $settings_sheet->setCellValue('B'.$row, $setting->institution->name);
+            $settings_sheet->setCellValue('D'.$row, $setting->institution->name);
             $json_plat = 'no-JSON-found'; // default to no-data-found
             $json_inst = 'no-JSON-found'; // default to no-data-found
+            $json_item_plat = 'no-Value-found'; // default to no-data-found
 
             // Find the most-recent rawfile in the harvestlogs for this setting
             if ($setting->harvestLogs) {
@@ -126,6 +127,11 @@ class AuditSushiSettings extends Command
                            $header = $json->Report_Header;
                            $json_plat = (isset($header->Created_By)) ? $header->Created_By : "no-Created_By";
                            $json_inst = (isset($header->Institution_Name)) ? $header->Institution_Name : "no-Institution_Name";
+                           if (isset($json->Report_Items) && is_array($json->Report_Items)) {
+                                if (isset($json->Report_Items[0]->Platform)) {
+                                    $json_item_plat = $json->Report_Items[0]->Platform;
+                                }
+                           }
                         } else {
                             $json_plat = 'no-Report_Header';
                             $json_inst = 'no-Report_Header';
@@ -138,19 +144,20 @@ class AuditSushiSettings extends Command
                     }
                 }
             }
-            $settings_sheet->setCellValue('C'.$row, $json_plat);
-            $settings_sheet->setCellValue('D'.$row, $json_inst);
+            $settings_sheet->setCellValue('B'.$row, $json_plat);
+            $settings_sheet->setCellValue('C'.$row, $json_item_plat);
+            $settings_sheet->setCellValue('E'.$row, $json_inst);
             $row++;
         }
         // Auto-size the columns
-        $columns = array('A','B','C','D');
+        $columns = array('A','B','C','D','E');
         foreach ($columns as $col) {
             $settings_sheet->getColumnDimension($col)->setAutoSize(true);
         }
         $bar->finish();
 
         // Save the data in the storage path
-        $fileName = storage_path() . "/SushiSettings_Audit_" . date("Y_m_d");
+        $fileName = storage_path() . "/SushiSettings_Audit_" . date("Y_m_d" . ".xlsx");
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save($fileName);
 
