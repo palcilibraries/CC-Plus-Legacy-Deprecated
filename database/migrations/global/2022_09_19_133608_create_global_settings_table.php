@@ -17,7 +17,7 @@ class CreateGlobalSettingsTable extends Migration
             $table->Increments('id');
             $table->string('type',6); // config or mail
             $table->string('name');
-            $table->string('value');
+            $table->string('value')->nullable();
             $table->index('name');
         });
     }
