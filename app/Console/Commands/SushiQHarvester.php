@@ -410,7 +410,7 @@ class SushiQHarvester extends Command
                    // Clean up and update the database;
                    // unless the request is "Pending", remove the job from the queue.
                     unset($sushi);
-                    $job->harvest->update();
+                    $job->harvest->save();
                     if ($request_status != "Pending") {
                         $job->delete();
                     }

@@ -64,11 +64,9 @@ class Sushi extends Model
             $result = $client->request('GET', $uri, $options);
         } catch (\Exception $e) {
             $this->step = "HTTP";
-            $this->error_code = (property_exists($e, 'Code')) ? $e->Code : 9010;
-            $this->severity = (property_exists($e, 'Severity')) ? strtoupper($e->Severity) : "ERROR";
-            $this->message = (property_exists($e, 'Message')) ? $e->Message : "SUSHI HTTP request failed, verify URL";
-            $this->detail = (property_exists($e, 'Data')) ? $e->Data : "";
-            $this->help_url = (property_exists($e, 'Help_URL')) ? $e->Help_URL : "";
+            $this->error_code = (property_exists($e, 'Code')) ? $e->getCode() : 9010;
+            $this->severity = (property_exists($e, 'Severity')) ? strtoupper($e->getSeverity()) : "ERROR";
+            $this->message = (property_exists($e, 'Message')) ? $e->getMessage() : "SUSHI HTTP request failed, verify URL";
             return "Fail";
         }
 
@@ -148,10 +146,11 @@ class Sushi extends Model
     *
     * @param SushiSetting $setting
     * @param Array $connectors
-    * @param Report $_report
+    * @param String $method
+    * @param Report $report
     * @return string $request_uri
     */
-    public function buildUri($setting, $connectors, $method = "reports", $report = "")
+    public function buildUri($setting, $connectors, $method = "reports", $report)
     {
        // Begin setting up the URI by cleaning/standardizing the server_url_r5 string in the setting
         $_url = rtrim($setting->provider->server_url_r5);    // remove trailing whitespace
@@ -180,7 +179,7 @@ class Sushi extends Model
         }
 
         // Return the URI if we're not building a report request
-        if ($report == "" || $method != "reports") {
+        if (!$report || $method != "reports") {
             return $request_uri . $uri_auth;
         }
 
@@ -317,7 +316,11 @@ class Sushi extends Model
         return false;
     }
 
-    // Update class data with exception details
+    /**
+     * Update class data with exception details
+     * 
+     * @param Exception $e
+     */
     public function saveExceptionData($e)
     {
       $this->severity = "ERROR";
