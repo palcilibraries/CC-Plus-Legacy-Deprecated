@@ -38,7 +38,7 @@ class CcplusErrorsTableSeeder extends Seeder
                 'explanation' => "The SUSHI service accepted the request and put it into a queue for future" .
                                  " processing at the provider's service.",
                 'suggestion' => 'Work with the CC-PLUS admin to correct this error.',
-                'new_status' => 'ReQueued'
+                'new_status' => 'Pending'
             ],
             ['id'=>1020, 'message' => 'Client has made too many requests', 'severity_id' => 99,
                 'explanation' => 'The request to the SUSHI server was successful, but the limit of requests per day' .
