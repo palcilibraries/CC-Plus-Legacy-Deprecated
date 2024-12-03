@@ -48,17 +48,15 @@ class SushiQHarvester extends Command
     public function __construct()
     {
         parent::__construct();
-        // $this->global_providers = GlobalProvider::where('is_active', true)->get();
-        // $this->connection_fields = ConnectionField::get();
         try {
           $this->global_providers = GlobalProvider::where('is_active', true)->get();
         } catch (\Exception $e) {
-          $this->global_providers = array();
+          $this->global_providers = collect();
         }
         try {
           $this->connection_fields = ConnectionField::get();
         } catch (\Exception $e) {
-          $this->connection_fields = array();
+          $this->connection_fields = collect();
         }
     }
 
