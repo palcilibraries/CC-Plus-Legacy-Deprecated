@@ -129,6 +129,8 @@ class GlobalProviderController extends Controller
                         $provider['connection_count'] += 1;
                     }
                 }
+                $parsedUrl = parse_url($gp->server_url_r5);
+                $provider['host_domain'] = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";    
                 $provider['connections'] = $connections;
                 $provider['updated'] = (is_null($gp->updated_at)) ? null : date("Y-m-d h:ia", strtotime($gp->updated_at));
                 $providers[] = $provider;
@@ -192,12 +194,14 @@ class GlobalProviderController extends Controller
       $provider->master_reports = $master_reports;
       $provider->save();
 
-      // Build return object to match what index() rows
+      // Build return object to match what index() shows
       $provider['can_delete'] = true;
       $provider['connection_count'] = 0;
       $provider['status'] = ($provider->is_active) ? "Active" : "Inactive";
       $provider['connector_state'] = $input['connector_state'];
       $provider['report_state'] = (isset($input['report_state'])) ? $input['report_state'] : array();
+      $parsedUrl = parse_url($provider->server_url_r5);
+      $provider['host_domain'] = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";    
 
       return response()->json(['result' => true, 'msg' => 'Platform successfully created',
                                'provider' => $provider]);
@@ -477,7 +481,7 @@ class GlobalProviderController extends Controller
         // Make the request and validate as JSON
         $json = $this->requestURI($_url);
         if ($json == "Request Failed") {
-            return response()->json(['result'=>false, 'msg'=>"Unable to retrieve COUNTER registry details: ".$e->getMessage()]);
+            return response()->json(['result'=>false, 'msg'=>"Unable to retrieve COUNTER registry details: "]);
         }
         if ($json == "JSON Failed") {
             return response()->json(['result'=>false, 'msg'=>"Error decoding JSON returned by registry!"]);
