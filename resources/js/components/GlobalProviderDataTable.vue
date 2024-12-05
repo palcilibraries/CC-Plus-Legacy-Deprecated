@@ -248,7 +248,7 @@
           { text: 'Status', value: 'status' },
           { text: 'Abbrev', value: 'abbrev', align: 'start' },
           { text: 'Platform Name', value: 'name', align: 'start' },
-          { text: 'Harvest Host Domain', value: 'host_domain', align: 'start' },
+          { text: 'Data Host Domain', value: 'host_domain', align: 'start' },
           { text: 'Harvest Day', value: 'day_of_month', align: 'center' },
           { text: 'Connected Instances', value: 'connection_count', align: 'center' },
           { text: 'Last Updated', value: 'updated', align: 'start' },
