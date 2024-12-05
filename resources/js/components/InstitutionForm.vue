@@ -29,7 +29,7 @@
       <!-- Providers -->
       <v-expansion-panel>
         <v-expansion-panel-header>
-          <h2>Platform</h2>
+          <h2>Platforms</h2>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <provider-data-table :key="provKey" :providers="mutable_providers" :institutions="mutable_institutions"
