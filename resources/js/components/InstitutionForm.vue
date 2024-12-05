@@ -29,7 +29,7 @@
       <!-- Providers -->
       <v-expansion-panel>
         <v-expansion-panel-header>
-          <h2>Providers</h2>
+          <h2>Platform</h2>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <provider-data-table :key="provKey" :providers="mutable_providers" :institutions="mutable_institutions"
@@ -77,10 +77,10 @@
               will be deleted.</strong>
             </p>
             <p>
-              Imports will overwrite existing credentials whenever a match for an Institution-ID and Provider-ID are
-              found in the import file. If no credentials exist for a given valid provider-institution pair, new
+              Imports will overwrite existing credentials whenever a match for an Institution-ID and Platform-ID are
+              found in the import file. If no credentials exist for a given valid platform-institution pair, new
               credentials will be created and saved. Any values in columns D-H which are NULL, blank, or missing for
-              a valid provider-institution pair, will result in the Default value being stored for that field.
+              a valid platform-institution pair, will result in the Default value being stored for that field.
             </p>
             <p>
               Generating an export of the existing credentials FIRST will provide detailed instructions for
