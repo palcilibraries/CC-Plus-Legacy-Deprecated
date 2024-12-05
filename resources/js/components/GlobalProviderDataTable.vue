@@ -241,14 +241,14 @@
         bulk_actions: [ 'Enable', 'Disable', 'Refresh Registry', 'Delete' ],
         bulkAction: null,
         selectedRows: [],
-        loading: true,
+        loading: false,
         search: '',
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
         headers: [
           { text: 'Status', value: 'status' },
           { text: 'Abbrev', value: 'abbrev', align: 'start' },
           { text: 'Platform Name', value: 'name', align: 'start' },
-          { text: 'Content Provider', value: 'content_provider', align: 'start' },
+          { text: 'Harvest Host Domain', value: 'host_domain', align: 'start' },
           { text: 'Harvest Day', value: 'day_of_month', align: 'center' },
           { text: 'Connected Instances', value: 'connection_count', align: 'center' },
           { text: 'Last Updated', value: 'updated', align: 'start' },
@@ -729,9 +729,6 @@
       });
       // Set datatable options with store-values
       Object.assign(this.mutable_options, this.datatable_options);
-      // Load providers
-      this.updateRecords();
-      this.dtKey += 1;           // force re-render of the datatable
 
       // Subscribe to store updates
       this.$store.subscribe((mutation, state) => { localStorage.setItem('store', JSON.stringify(state)); });
