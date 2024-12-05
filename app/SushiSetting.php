@@ -32,7 +32,7 @@ class SushiSetting extends Model
     protected $fillable = [
       'inst_id', 'prov_id', 'requestor_id', 'customer_id', 'api_key', 'extra_args', 'support_email', 'status'
     ];
-    protected $casts =['id'=>'integer', 'inst_id'=>'integer', 'prov_id'=>'integer'];
+    protected $casts =['id'=>'integer', 'inst_id'=>'integer', 'prov_id'=>'integer', 'last_harvest_id'=>'integer'];
 
   /**
    * The attributes that should be encrypted on save (password is already hashed)
@@ -69,6 +69,11 @@ class SushiSetting extends Model
     public function failedHarvests()
     {
         return $this->hasMany('App\FailedHarvest');
+    }
+
+    public function lastHarvest()
+    {
+        return $this->belongsTo('App\HarvestLog', 'last_harvest_id');
     }
 
     public function alerts()
