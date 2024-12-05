@@ -80,6 +80,8 @@ class AdminController extends Controller
             $rec->is_conso = ($conso_connection) ? true : false;
             $rec->allow_inst_specific = ($conso_connection) ? $conso_connection->allow_inst_specific : 0; // default
             $rec->last_harvest = $rec->sushiSettings->max('last_harvest');
+            $parsedUrl = parse_url($rec->server_url_r5);
+            $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
 
             // Setup flags to control per-report icons in the U/I
             $report_flags = $this->setReportFlags($master_reports, $master_ids, $conso_reports);
@@ -99,6 +101,7 @@ class AdminController extends Controller
                         $rec->inst_id = $prov_data->inst_id;
                     }
                     $_rec['day_of_month'] = $rec->day_of_month;
+                    $_rec['host_domain'] = $rec->host_domain;
                     $_rec['inst_name'] = ($prov_data->inst_id == 1) ? 'Consortium' : $prov_data->institution->name;
                     $_rec['inst_stat'] = ($prov_data->institution->is_active) ? "isActive" : "isInactive";
                     $_inst_reports = $prov_data->reports->pluck('id')->toArray();

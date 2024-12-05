@@ -61,6 +61,8 @@ class ProviderController extends Controller
             $rec->inst_id = null;
             $rec->inst_name = null;
             $rec->active = ($rec->is_active) ? 'Active' : 'Inactive';
+            $parsedUrl = parse_url($rec->server_url_r5);
+            $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";
             $rec->can_delete = false;
             $rec->connected = array();
 
@@ -111,6 +113,7 @@ class ProviderController extends Controller
                     $rec->can_connect = ($rec->inst_id == 1) ? true : false;
                 }
                 $rec->can_delete = (is_null($rec->last_harvest)) ? true : false;
+                $rec->host_domain = $rec->host_domain;
                 if ($prov_data->reports) {
                     $report_ids = $prov_data->reports->pluck('id')->toArray();
                     $combined_ids = array_unique(array_merge($conso_reports, $report_ids));
@@ -424,6 +427,8 @@ class ProviderController extends Controller
         $return_provider->last_harvest = $global->sushiSettings->max('last_harvest');
         $return_provider->can_delete = (is_null($provider->last_harvest)) ? true : false;
         $return_provider->allow_inst_specific = $provider->allow_inst_specific;
+        $parsedUrl = parse_url($global->server_url_r5);
+        $return_provider->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
 
         // Set master reports to the globally available reports
         $master_ids = $global->master_reports;
@@ -449,6 +454,7 @@ class ProviderController extends Controller
             $_rec['report_state'] = $this->reportState($master_reports, $conso_reports, $combined_ids);
             $_rec['master_reports'] = $return_provider->master_reports;
             $_rec['last_harvest'] = $global->sushiSettings->max('last_harvest');
+            $_rec['host_domain'] = $return_provider->host_domain;          
             $_rec['can_edit'] = true;
             $_rec['can_delete'] = (is_null($_rec['last_harvest'])) ? true : false;
             $_rec['allow_inst_specific'] = ($prov_data->inst_id == 1) ? $prov_data->allow_inst_specific : 0;

@@ -285,6 +285,9 @@ class InstitutionController extends Controller
             $rec->is_active = ($inst_connection) ? $inst_connection->is_active : $rec->is_active;
             $rec->active = ($rec->is_active) ? 'Active' : 'Inactive';
             $rec->last_harvest = null;
+            $parsedUrl = parse_url($rec->server_url_r5);
+            $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
+
 
             // Setup flags to control per-report icons in the U/I
             $report_flags = $this->setReportFlags($master_reports, $master_ids, $conso_reports, $inst_reports);
@@ -317,6 +320,7 @@ class InstitutionController extends Controller
                 $_rec['master_reports'] = $rec->master_reports;
                 $_rec['report_state'] = $this->reportState($master_reports, $conso_reports, $combined_ids);
                 $_rec['day_of_month'] = $rec->day_of_month;
+                $_rec['host_domain'] = $rec->host_domain;          
                 // last harvest is based on THIS INST ($id) sushisettings
                 $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
                 $_rec['last_harvest'] = ($_setting) ? $_setting->last_harvest : null;
