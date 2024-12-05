@@ -230,7 +230,7 @@
           { text: 'Status', value: 'active'},
           { text: 'Abbrev ', value: 'abbrev', align: 'start' },
           { text: 'Platform ', value: 'name', align: 'start' },
-          { text: 'Content Provider', value: 'content_provider', align: 'start' },
+          { text: 'Data Host Domain', value: 'host_domain', align: 'start' },
           { text: 'PR', value: 'PR_status', width: '16px', align: 'center' },
           { text: 'DR', value: 'DR_status', width: '16px', align: 'center' },
           { text: 'TR', value: 'TR_status', width: '16px', align: 'center' },
