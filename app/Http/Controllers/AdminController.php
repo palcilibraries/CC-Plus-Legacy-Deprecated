@@ -9,6 +9,7 @@ use App\Institution;
 use App\InstitutionGroup;
 use App\Provider;
 use App\GlobalProvider;
+use App\SushiSetting;
 use App\ConnectionField;
 use App\Report;
 use App\HarvestLog;
@@ -59,15 +60,21 @@ class AdminController extends Controller
         // Get all (consortium) providers, extract array of global IDs
         $conso_providers = Provider::with('reports:id,name','institution:id,name,is_active')->orderBy('name','ASC')->get();
 
-        // Build list of providers, based on globals, that includes extra institution-specific providers
-        $global_providers = GlobalProvider::with('sushiSettings:id,prov_id,last_harvest,last_harvest_id')->where('is_active', true)
-                                          ->orderBy('name', 'ASC')->get();
+        // Get all active global providers
+        $global_providers = GlobalProvider::where('is_active', true)->orderBy('name', 'ASC')->get();
 
+        // Get SUSHI settings for the active globals
+        $global_ids = $global_providers->pluck('id')->toArray();
+        $all_sushi_settings = SushiSetting::whereIn('prov_id',$global_ids)->with('lastHarvest')->get();
+
+        // Build the array of providers we will pass back
         $output_providers = [];
         foreach ($global_providers as $rec) {
             $rec->global_prov = $rec->toArray();
             $rec->connectors = $rec->connectionFields();
             $rec->active = ($rec->is_active) ? 'Active' : 'Inactive';
+            $sushi_settings = $all_sushi_settings->where('prov_id', $rec->id);  // settings for this provider
+
             // Setup connected institution data
             $connected_providers = $conso_providers->where('global_id',$rec->id);
             $rec->connection_count = count($connected_providers);
@@ -80,17 +87,17 @@ class AdminController extends Controller
             $rec->master_reports = $master_reports->whereIn('id', $master_ids)->values()->toArray();
             $rec->is_conso = ($conso_connection) ? true : false;
             $rec->allow_inst_specific = ($conso_connection) ? $conso_connection->allow_inst_specific : 0; // default
-            $rec->last_harvest_id = $rec->sushiSettings->max('last_harvest_id');
+            $rec->last_harvest_id = $sushi_settings->max('last_harvest_id');
             if ($rec->last_harvest_id > 0) {
                 $_last = HarvestLog::where('id',$rec->last_harvest_id)->first();
                 if ($_last) {
                     $rec->last_harvest = $_last->yearmon . " (run " . substr($_last->updated_at,0,10) . ")";
                 } else {
                     $rec->last_harvest_id = 0;
-                    $rec->last_harvest = $rec->sushiSettings->max('last_harvest');
+                    $rec->last_harvest = $sushi_settings->max('last_harvest');
                 }
             } else {
-                $rec->last_harvest = $rec->sushiSettings->max('last_harvest');
+                $rec->last_harvest = $sushi_settings->max('last_harvest');
             }
             $parsedUrl = parse_url($rec->server_url_r5);
             $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
@@ -120,7 +127,22 @@ class AdminController extends Controller
                     $combined_ids = array_unique(array_merge($conso_reports, $_inst_reports));
                     $_rec['master_reports'] = $rec->master_reports;
                     $_rec['report_state'] = $this->reportState($master_reports, $conso_reports, $combined_ids);
-                    $_rec['last_harvest'] = $rec->last_harvest;
+                    // last harvest (for connected) is based on the INST ($prov_data->inst_id) sushisetting
+                    $_rec['last_harvest'] = null;         // default to no harvest
+                    $_rec['last_harvest_id'] = 0;        //    "    "  "    "
+                    if ($_rec['inst_id'] == 1) {          // set conso-wide to the global values
+                        $_rec['last_harvest'] = $rec->last_harvest;
+                        $_rec['last_harvest_id'] = $rec->last_harvest_id;
+                    } else if ($_rec['inst_id'] > 1) {    // set to inst-specific values?
+                        $_setting = $sushi_settings->where('inst_id',$_rec['inst_id'])->first();
+                        if ($_setting) {
+                            if ($_setting->last_harvest_id > 0) {
+                                $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
+                                $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
+                                $_rec['last_harvest_id'] = $_setting->last_harvest_id;
+                            }
+                        }
+                    }
                     $_rec['can_edit'] = true;
                     $_rec['can_delete'] = (is_null($_rec['last_harvest'])) ? true : false;
                     $_rec['allow_inst_specific'] = ($prov_data->inst_id == 1) ? $prov_data->allow_inst_specific : 0;
