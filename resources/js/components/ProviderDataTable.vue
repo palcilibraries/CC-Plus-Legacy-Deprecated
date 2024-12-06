@@ -334,6 +334,7 @@
             this.cur_provider['inst_id'] = context_inst.id;
             this.cur_provider['inst_name'] = context_inst.name;
             this.cur_provider['last_harvest'] = null;
+            this.cur_provider['last_harvest_id'] = 0;
             // if (re-)connecting a conso provider, use the report_state from the consortium definition
             if (this.cur_provider.is_conso) {
               let consoProv = this.cur_provider.connected.find( p => p.inst_id == 1 );
