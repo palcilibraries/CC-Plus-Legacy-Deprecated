@@ -215,7 +215,7 @@ class InstitutionController extends Controller
         // Get the institution and sushi settings
         $institution = Institution::with('users', 'users.roles','institutionGroups','institutionGroups.institutions:id,name')
                                   ->findOrFail($id);
-        $sushi_settings = SushiSetting::with('provider')->where('inst_id',$institution->id)->get();
+        $sushi_settings = SushiSetting::with('provider','lastHarvest')->where('inst_id',$institution->id)->get();
 
         // Get most recent harvest and set can_delete flag
         $last_harvest = $sushi_settings->max('last_harvest');
@@ -288,7 +288,6 @@ class InstitutionController extends Controller
             $parsedUrl = parse_url($rec->server_url_r5);
             $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
 
-
             // Setup flags to control per-report icons in the U/I
             $report_flags = $this->setReportFlags($master_reports, $master_ids, $conso_reports, $inst_reports);
             foreach ($report_flags as $rpt) {
@@ -321,10 +320,19 @@ class InstitutionController extends Controller
                 $_rec['report_state'] = $this->reportState($master_reports, $conso_reports, $combined_ids);
                 $_rec['day_of_month'] = $rec->day_of_month;
                 $_rec['host_domain'] = $rec->host_domain;          
-                // last harvest is based on THIS INST ($id) sushisettings
-                $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
-                $_rec['last_harvest'] = ($_setting) ? $_setting->last_harvest : null;
                 $_rec['allow_inst_specific'] = ($prov_data->inst_id == 1) ? $prov_data->allow_inst_specific : 0;
+                // last harvest is based on THIS INST ($id) sushisetting for the provider-global
+                $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
+                if ($_setting) {
+                    if ($rec->last_harvest_id > 0) {
+                        $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
+                        $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
+                    } else {
+                        $_rec['last_harvest'] = $_setting->last_harvest;
+                    }
+                } else {
+                    $_rec['last_harvest'] = null;
+                }
                 // The connected prov is editable if it is conso or specific to this inst
                 // If it is an inst-specific connection for a different inst, mark not editable
                 // (do this so that the INST-SHOW U/I view of providers makes sense)

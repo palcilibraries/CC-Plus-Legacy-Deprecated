@@ -11,6 +11,7 @@ use App\Provider;
 use App\GlobalProvider;
 use App\ConnectionField;
 use App\Report;
+use App\HarvestLog;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -59,7 +60,7 @@ class AdminController extends Controller
         $conso_providers = Provider::with('reports:id,name','institution:id,name,is_active')->orderBy('name','ASC')->get();
 
         // Build list of providers, based on globals, that includes extra institution-specific providers
-        $global_providers = GlobalProvider::with('sushiSettings:id,prov_id,last_harvest')->where('is_active', true)
+        $global_providers = GlobalProvider::with('sushiSettings:id,prov_id,last_harvest,last_harvest_id')->where('is_active', true)
                                           ->orderBy('name', 'ASC')->get();
 
         $output_providers = [];
@@ -79,7 +80,18 @@ class AdminController extends Controller
             $rec->master_reports = $master_reports->whereIn('id', $master_ids)->values()->toArray();
             $rec->is_conso = ($conso_connection) ? true : false;
             $rec->allow_inst_specific = ($conso_connection) ? $conso_connection->allow_inst_specific : 0; // default
-            $rec->last_harvest = $rec->sushiSettings->max('last_harvest');
+            $rec->last_harvest_id = $rec->sushiSettings->max('last_harvest_id');
+            if ($rec->last_harvest_id > 0) {
+                $_last = HarvestLog::where('id',$rec->last_harvest_id)->first();
+                if ($_last) {
+                    $rec->last_harvest = $_last->yearmon . " (run " . substr($_last->updated_at,0,10) . ")";
+                } else {
+                    $rec->last_harvest_id = 0;
+                    $rec->last_harvest = $rec->sushiSettings->max('last_harvest');
+                }
+            } else {
+                $rec->last_harvest = $rec->sushiSettings->max('last_harvest');
+            }
             $parsedUrl = parse_url($rec->server_url_r5);
             $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
 
