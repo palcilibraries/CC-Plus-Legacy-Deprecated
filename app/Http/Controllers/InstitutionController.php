@@ -324,7 +324,7 @@ class InstitutionController extends Controller
                 // last harvest is based on THIS INST ($id) sushisetting for the provider-global
                 $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
                 if ($_setting) {
-                    if ($rec->last_harvest_id > 0) {
+                    if ($_setting->last_harvest_id > 0) {
                         $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
                         $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
                     } else {
