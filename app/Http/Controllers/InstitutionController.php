@@ -323,8 +323,8 @@ class InstitutionController extends Controller
                 $_rec['allow_inst_specific'] = ($prov_data->inst_id == 1) ? $prov_data->allow_inst_specific : 0;
                 // last harvest is based on THIS INST ($id) sushisetting for the provider-global
                 $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
-                $_rec['last_harvest_id']  = $_setting->last_harvest_id;
                 if ($_setting) {
+                    $_rec['last_harvest_id']  = $_setting->last_harvest_id;
                     if ($_setting->last_harvest_id > 0) {
                         $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
                         $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
@@ -333,6 +333,7 @@ class InstitutionController extends Controller
                     }
                 } else {
                     $_rec['last_harvest'] = null;
+                    $_rec['last_harvest_id'] = 0;
                 }
                 // The connected prov is editable if it is conso or specific to this inst
                 // If it is an inst-specific connection for a different inst, mark not editable
