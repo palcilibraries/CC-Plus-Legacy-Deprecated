@@ -317,6 +317,7 @@
                 this.cur_provider['global_id'] = this.cur_provider.connected[cnxIdx].global_id;
                 this.cur_provider['day_of_month'] = this.cur_provider.connected[cnxIdx].day_of_month;
                 this.cur_provider['last_harvest'] = this.cur_provider.connected[cnxIdx].last_harvest;
+                this.cur_provider['last_harvest_id'] = this.cur_provider.connected[cnxIdx].last_harvest_id;
                 this.cur_provider['report_state'] = {...this.cur_provider.connected[cnxIdx].report_state};
             }
             this.dialog_institutions = [...this.institutions];
