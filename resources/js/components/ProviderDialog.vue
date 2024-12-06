@@ -72,16 +72,17 @@
         </v-col>
       </v-row>
       <v-row class="d-flex mx-2 my-0" no-gutters>
-        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-6 justify-center" cols="12">
+        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4" cols="12">
           <span v-if="!this.reportsEnabled"><strong>Reports to Harvest</strong> (at least one is required)</span>
           <span v-else><strong>Reports to Harvest</strong></span>
         </v-col>
-        <v-col v-else class="d-flex px-4 justify-center" cols="12">
+        <v-col v-else class="d-flex px-4" cols="12">
           <strong>No reports enabled globally</strong>
         </v-col>
       </v-row>
       <v-row class="d-flex mx-2 my-0" no-gutters>
-        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4 justify-center" cols="12">
+        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4" cols="1">&nbsp;</v-col>
+        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4" cols="11">
           <v-list class="shaded" dense>
             <v-list-item v-for="rpt in mutable_provider.master_reports" :key="rpt.name" class="verydense">
               <v-checkbox v-model="form.report_state[rpt.name]['prov_enabled']" key="rpt.name" :label="rpt.name" dense
@@ -96,18 +97,18 @@
         <v-col v-else class="d-flex" cols="12">&nbsp;</v-col>
       </v-row>
       <v-row v-if="mutable_provider.last_harvest!=null" class="d-flex mx-2 my-0" no-gutters>
-        <v-col class="d-flex px-6" cols="6">&nbsp;</v-col>
-        <v-col class="d-flex px-6" cols="6"><strong>Last Successful Harvest</strong></v-col>
+        <v-col class="d-flex px-4" cols="12"><strong>Last Successful Harvest</strong></v-col>
       </v-row>
       <v-row v-if="mutable_provider.last_harvest!=null" class="d-flex mx-2 my-0" no-gutters>
-        <v-col class="d-flex px-6" cols="6">&nbsp;</v-col>
-        <v-col v-if="mutable_provider.last_harvest_id>0" class="d-flex px-6" cols="6">
-          {{ mutable_provider.last_harvest }}
-          <span>{<a title="Downloaded JSON" :href="'/harvests/'+mutable_provider.last_harvest_id+'/raw'" target="_blank">
-            {{ mutable_provider.last_harvest_id }}</a>}
+        <v-col v-if="mutable_provider.master_reports.length>0" class="d-flex px-4" cols="1">&nbsp;</v-col>
+        <v-col v-if="mutable_provider.last_harvest_id>0" class="d-flex px-4" cols="11">
+          {{ mutable_provider.last_harvest }} &nbsp;
+          <span>
+            {<a title="Downloaded JSON" :href="'/harvests/'+mutable_provider.last_harvest_id+'/raw'"
+                target="_blank">{{ mutable_provider.last_harvest_id }}</a>}
           </span>
         </v-col>
-        <v-col v-else class="d-flex px-6" cols="6">
+        <v-col v-else class="d-flex px-6" cols="11">
           {{ mutable_provider.last_harvest }}
         </v-col>
       </v-row>
