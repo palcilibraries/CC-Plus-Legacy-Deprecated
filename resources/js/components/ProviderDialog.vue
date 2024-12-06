@@ -101,7 +101,15 @@
       </v-row>
       <v-row v-if="mutable_provider.last_harvest!=null" class="d-flex mx-2 my-0" no-gutters>
         <v-col class="d-flex px-6" cols="6">&nbsp;</v-col>
-        <v-col class="d-flex px-6" cols="6">{{ mutable_provider.last_harvest }}</v-col>
+        <v-col v-if="mutable_provider.last_harvest_id>0" class="d-flex px-6" cols="6">
+          {{ mutable_provider.last_harvest }}
+          <span>{<a title="Downloaded JSON" :href="'/harvests/'+mutable_provider.last_harvest_id+'/raw'" target="_blank">
+            {{ mutable_provider.last_harvest_id }}</a>}
+          </span>
+        </v-col>
+        <v-col v-else class="d-flex px-6" cols="6">
+          {{ mutable_provider.last_harvest }}
+        </v-col>
       </v-row>
       <v-row class="d-flex ma-2" no-gutters>
         <v-spacer></v-spacer>
