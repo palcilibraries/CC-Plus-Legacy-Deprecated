@@ -718,7 +718,7 @@ class HarvestLogController extends Controller
        $attempts = $data->map(function ($rec) {
            $rec->severity = $rec->ccplusError->severity->name;
            $rec->message = $rec->ccplusError->message;
-           $rec->attempted = date("Y-m-d H:i:s", strtotime($rec->created_at));
+           $rec->attempted = ($rec->created_at) ? date("Y-m-d H:i", strtotime($rec->created_at)) : " ";
            return $rec;
        })->toArray();
 
@@ -726,7 +726,7 @@ class HarvestLogController extends Controller
        if ($harvest->status == 'Success') {
            $rec = array('process_step' => 'SUCCESS', 'error_id' => '', 'severity' => '', 'detail' => '');
            $rec['message'] = "Harvest successfully completed";
-           $rec['attempted'] = date("Y-m-d H:i:s", strtotime($harvest->created_at));
+           $rec['attempted'] = ($harvest->created_at) ? date("Y-m-d H:i", strtotime($harvest->created_at)) : " ";
            array_unshift($attempts,$rec);
        } else {
            // Harvests could have prior failures, but attampes has been reset to zero to requeue ot
@@ -776,6 +776,7 @@ class HarvestLogController extends Controller
        $harvest->status = $request->input('status');
        $harvest->save();
        $harvest->load('report:id,name','sushiSetting','sushiSetting.institution:id,name','sushiSetting.provider:id,name');
+       $harvest->updated = ($harvest->updated_at) ? date("Y-m-d H:i", strtotime($harvest->updated_at)) : " ";
 
        return response()->json(['result' => true, 'harvest' => $harvest]);
    }
@@ -1076,12 +1077,11 @@ class HarvestLogController extends Controller
                continue;
           }
           $active_job = $jobs->where('harvest_id',$rec->id)->first();
-          $rec->created_at = ($active_job) ? $active_job->created_at : $rec->updated_at;
           $rec->prov_name = $rec->sushiSetting->provider->name;
           $rec->inst_name = $rec->sushiSetting->institution->name;
           $rec->report_name = $rec->report->name;
           $rec->created_at = ($active_job) ? $active_job->created_at : $rec->updated_at;
-          $rec->created = date("Y-m-d H:i", strtotime($rec->created_at));
+          $rec->created = ($rec->created_at) ? date("Y-m-d H:i", strtotime($rec->created_at)) : " ";
           $rec->dStatus = $displayStatus[$rec->status];
           $harvests[] = $rec->toArray();
        }
@@ -1156,7 +1156,7 @@ class HarvestLogController extends Controller
                     'status' => $harvest->status, 'rawfile' => $harvest->rawfile,
                     'error_id' => 0, 'error' => []
                    );
-       $rec['updated'] = date("Y-m-d H:i", strtotime($harvest->updated_at));
+       $rec['updated'] = ($harvest->updated_at) ? date("Y-m-d H:i", strtotime($harvest->updated_at)) : " ";
        if ($harvest->lastError) {
            $rec['error_id'] = $harvest->error_id;
            $rec['error'] = $harvest->lastError->toArray();
@@ -1173,9 +1173,9 @@ class HarvestLogController extends Controller
            $rec['retryUrl'] = $sushi->buildUri($harvest->sushiSetting, $connectors, 'reports', $harvest->report);
            // Format and save the failed records
            foreach ($harvest->failedHarvests->sortByDesc('created_at') as $fh) {
-               $info = array("id" => $fh->id, "ts" => date("Y-m-d H:i:s", strtotime($fh->created_at)),
-                             "code" => $fh->ccplusError->id, "message" => $fh->ccplusError->message);
+               $info = array("id" => $fh->id, "code" => $fh->ccplusError->id, "message" => $fh->ccplusError->message);
                // U/I will point to COUNTER docs for details on COUNTER error codes
+               $info['ts'] = ($fh->created_at) ? date("Y-m-d H:i", strtotime($fh->created_at)) : " ";
                $info['detail'] = ($fh->ccplusError->id < 1000 || $fh->ccplusError->id >= 9000) ? $fh->detail : "";
                $info['help_url'] = (is_null($fh->help_url)) ? "" : $fh->help_url;
                $rec['failed'][] = $info;

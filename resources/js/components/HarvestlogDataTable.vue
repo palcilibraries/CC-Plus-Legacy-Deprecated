@@ -272,9 +272,6 @@
         {{ item.prov_name.substr(0,63) }}
         <span v-if="item.prov_name.length>63">...</span>
       </template>
-      <template v-slot:item.updated="{ item }">
-        {{ item.updated.substr(0,10) }}
-      </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
         <span v-else>&nbsp;</span>
