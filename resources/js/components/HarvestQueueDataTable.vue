@@ -297,6 +297,7 @@
                this.mutable_filters.codes.splice(_cidx, 1);
                this.mutable_filters.codes.unshift('No Error');
              }
+             this.selectedRows = [];
         },
         // Applies limit-to consortium switch by updating/managing the array of providers to limit to
         updateConsoOnly(reload) {
