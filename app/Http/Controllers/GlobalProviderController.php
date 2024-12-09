@@ -132,7 +132,7 @@ class GlobalProviderController extends Controller
                 $parsedUrl = parse_url($gp->server_url_r5);
                 $provider['host_domain'] = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";    
                 $provider['connections'] = $connections;
-                $provider['updated'] = (is_null($gp->updated_at)) ? "" : date("Y-m-d h:ia", strtotime($gp->updated_at));
+                $provider['updated'] = (is_null($gp->updated_at)) ? "" : date("Y-m-d H:i", strtotime($gp->updated_at));
                 $providers[] = $provider;
             }
 
@@ -311,7 +311,7 @@ class GlobalProviderController extends Controller
       if (isset($input['connector_state'])) {
           $provider['connector_state'] = $input['connector_state'];
       }
-      $provider['updated'] = (is_null($provider->updated_at)) ? null : date("Y-m-d h:ia", strtotime($provider->updated_at));
+      $provider['updated'] = (is_null($provider->updated_at)) ? null : date("Y-m-d H:i", strtotime($provider->updated_at));
 
       // Get connector fields
       $fields = $all_connectors->whereIn('id',$provider->connectors)->pluck('name')->toArray();
@@ -656,7 +656,7 @@ class GlobalProviderController extends Controller
             $return_rec['report_state'] = $this->reportState($reportIds);
             $return_rec['connection_count'] = count($connectors);
             $return_rec['connector_state'] = $this->connectorState($connectors);
-            $return_rec['updated'] = date("Y-m-d h:ia", strtotime($global_provider->updated_at));
+            $return_rec['updated'] = date("Y-m-d H:i", strtotime($global_provider->updated_at));
             $updated_ids[] = $global_provider->id;
             $success_count++;
             $return_rec['error'] = 0;
