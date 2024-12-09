@@ -82,7 +82,7 @@ class GlobalAdminController extends Controller
             $parsedUrl = parse_url($gp->server_url_r5);
             $provider['host_domain'] = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";
             $provider['connections'] = $connections;
-            $provider['updated'] = (is_null($gp->updated_at)) ? "" : date("Y-m-d h:ia", strtotime($gp->updated_at));
+            $provider['updated'] = (is_null($gp->updated_at)) ? "" : date("Y-m-d H:i", strtotime($gp->updated_at));
             $providers[] = $provider;
         }
 
