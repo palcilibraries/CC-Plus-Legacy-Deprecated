@@ -31,9 +31,9 @@ class HarvestLogController extends Controller
        $this->middleware('auth');
        // Load all connection fields
        try {
-         $this->connection_fields = ConnectionField::get();
+           $this->connection_fields = ConnectionField::get();
        } catch (\Exception $e) {
-         $this->connection_fields = array();
+           $this->connection_fields = collect();
        }
    }
 
@@ -331,14 +331,11 @@ class HarvestLogController extends Controller
                                       ->orderBy('name', 'ASC')->get(['id','name'])->toArray();
            $group_data = InstitutionGroup::with('institutions')->orderBy('name', 'ASC')->get(['id','name']);
 
-           // Copy available_providers into the groups (to simplify the vue component)
+           // Set/Update inst_groups; skip groups with no members
            foreach ($group_data as $key => $group) {
-               // Remove groups with no members
-               if ( $group->institutions->count() == 0 ) continue;
-               $insts = $group->institutions->pluck('id')->toArray();
-               $available_providers = SushiSetting::whereIn('inst_id',$insts)->pluck('prov_id')->toArray();
-               $group->providers = $provider_data->whereIn('id',$available_providers)->toArray();
-               $inst_groups[] = $group;
+               if ( $group->institutions->count() > 0 ) {
+                   $inst_groups[] = $group;
+               }
            }
 
        } else {    // manager view
@@ -1003,6 +1000,7 @@ class HarvestLogController extends Controller
                $filters['groups'] = array();
            }
            if (sizeof($filters['groups']) > 0) {
+               $all_groups = InstitutionGroup::with('institutions:id,name')->orderBy('name', 'ASC')->get();
                foreach ($filters['groups'] as $group_id) {
                    $group = $all_groups->where('id',$group_id)->first();
                    if ($group) {
