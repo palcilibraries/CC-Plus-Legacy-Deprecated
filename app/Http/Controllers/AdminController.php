@@ -88,16 +88,17 @@ class AdminController extends Controller
             $rec->is_conso = ($conso_connection) ? true : false;
             $rec->allow_inst_specific = ($conso_connection) ? $conso_connection->allow_inst_specific : 0; // default
             $rec->last_harvest_id = $sushi_settings->max('last_harvest_id');
+            $rec->last_harvest = $sushi_settings->max('last_harvest');
             if ($rec->last_harvest_id > 0) {
                 $_last = HarvestLog::where('id',$rec->last_harvest_id)->first();
                 if ($_last) {
-                    $rec->last_harvest = $_last->yearmon . " (run " . substr($_last->updated_at,0,10) . ")";
+                    if ($_last->updated_at) {
+                        $rec->last_harvest  = $_last->yearmon . " (run ";
+                        $rec->last_harvest .= date("Y-m-d H:i", strtotime($_last->updated_at)) . ")";
+                    }
                 } else {
                     $rec->last_harvest_id = 0;
-                    $rec->last_harvest = $sushi_settings->max('last_harvest');
                 }
-            } else {
-                $rec->last_harvest = $sushi_settings->max('last_harvest');
             }
             $parsedUrl = parse_url($rec->server_url_r5);
             $rec->host_domain = (isset($parsedUrl['host'])) ? $parsedUrl['host'] : "-missing-";          
@@ -138,7 +139,7 @@ class AdminController extends Controller
                         if ($_setting) {
                             if ($_setting->last_harvest_id > 0) {
                                 $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
-                                $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
+                                $_rec['last_harvest'] .= date("Y-m-d H:i", strtotime($_setting->lastHarvest->updated_at)) . ")";
                                 $_rec['last_harvest_id'] = $_setting->last_harvest_id;
                             }
                         }
