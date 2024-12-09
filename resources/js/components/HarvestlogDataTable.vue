@@ -194,16 +194,13 @@
         <span v-if="item.prov_inst_id==1">
           <v-icon title="Consortium Platform">mdi-account-multiple</v-icon>&nbsp;
         </span>
-        {{ item.prov_name }}
+        {{ item.prov_name.substr(0,63) }}
+        <span v-if="item.prov_name.length>63">...</span>
       </template>
       <template v-slot:item.id="{ item }">
         <span v-if="item.rawfile!=null">{<a title="Downloaded JSON" :href="'/harvests/'+item.id+'/raw'">{{ item.id }}</a>}</span>
         <span v-else>{{ item.id }}</span>
         <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)" color="#3686B4">mdi-barley</v-icon>
-      </template>
-      <template v-slot:item.prov_name="{ item }">
-        {{ item.prov_name.substr(0,63) }}
-        <span v-if="item.prov_name.length>63">...</span>
       </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
@@ -272,14 +269,11 @@
         <span v-if="item.prov_inst_id==1">
           <v-icon title="Consortium Platform">mdi-account-multiple</v-icon>&nbsp;
         </span>
-        {{ item.prov_name }}
+        {{ item.prov_name.substr(0,63) }}
+        <span v-if="item.prov_name.length>63">...</span>
       </template>
       <template v-slot:item.updated="{ item }">
         {{ item.updated.substr(0,10) }}
-      </template>
-      <template v-slot:item.prov_name="{ item }">
-        {{ item.prov_name.substr(0,63) }}
-        <span v-if="item.prov_name.length>63">...</span>
       </template>
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">{{ item.error.id }}</span>
@@ -476,11 +470,12 @@
                      this.dtKey++;
                  })
                  .catch(err => console.log(err));
-                 _cidx = this.mutable_filters.codes.findIndex(c => c == 0);
-                 if ( _cidx >= 0 ) {
-                   this.mutable_filters.codes.splice(_cidx, 1);
-                   this.mutable_filters.codes.unshift('No Error');
-                 }
+            _cidx = this.mutable_filters.codes.findIndex(c => c == 0);
+            if ( _cidx >= 0 ) {
+                this.mutable_filters.codes.splice(_cidx, 1);
+                this.mutable_filters.codes.unshift('No Error');
+            }
+            this.selectedRows = [];
         },
         updateOptions(options) {
             if (Object.keys(this.mutable_dt_options).length === 0) return;
