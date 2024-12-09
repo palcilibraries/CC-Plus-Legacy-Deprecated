@@ -10,10 +10,9 @@
           <td>{{ item.yearmon }}</td>
           <td>{{ item.prov_name }}</td>
           <td>{{ item.inst_name }}</td>
-		  <td>{{ item.report_name }}</td>
-          <td v-if="(item.updated_at)">{{ item.updated_at.substr(0,10) }}</td>
-          <td v-else> </td>
-		  <td><a :href="item.detail_url">Harvest details</a></td>
+    		  <td>{{ item.report_name }}</td>
+          <td>{{ item.updated }}</td>
+		      <td><a :href="item.detail_url">Harvest details</a></td>
         </tr>
       </template>
     </v-data-table>
@@ -36,7 +35,7 @@
           { text: 'Provider', value: 'prov_name' },
           { text: 'Institution', value: 'inst_name' },
           { text: 'Report', value: 'report_name' },
-          { text: 'Last Updated', value: 'updated_at' },
+          { text: 'Last Updated', value: 'updated' },
           { text: '', value: '', sortable: false },
         ],
       }

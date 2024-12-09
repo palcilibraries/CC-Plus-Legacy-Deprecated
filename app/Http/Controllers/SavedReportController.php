@@ -172,8 +172,7 @@ class SavedReportController extends Controller
             }
 
             // Build a record for the view
-            $record = array('id' => $alert->id, 'yearmon' => $alert->yearmon, 'status' => $alert->status,
-                            'updated_at' => $alert->updated_at);
+            $record = array('id' => $alert->id, 'yearmon' => $alert->yearmon, 'status' => $alert->status);
 
             if (!is_null($alert->alertsettings_id)) {
                 $record['detail_url'] = "/alertsettings/" . $alert->alertsettings_id;
@@ -186,6 +185,7 @@ class SavedReportController extends Controller
             $record['mod_by'] = ($alert->modified_by == 1) ? 'CC-Plus System' : $alert->user->name;
             $record['inst_name'] = ($_inst_id == 1)  ? "Consortia-wide" : $alert->institution()->name;
             $record['prov_name'] = $alert->provider->name;
+            $record['updated'] = ($alert->updated_at) ? date("Y-m-d H:i", strtotime($alert->updated_at)) : " ";
             $data_alerts[] = $record;
         }
 
