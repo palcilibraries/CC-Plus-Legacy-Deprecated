@@ -71,12 +71,20 @@ class SushiSettingController extends Controller
             if ($request->input('context')) {
                 $context = ($request->input('context') > 0) ? $request->input('context') : 1;
             }
+            $consoOnly = ($request->input('consoOnly') > 0) ? $request->input('consoOnly') : 0;
             $limit_prov_ids = (count($filters['prov']) > 0) ? $filters['prov'] : [];
-            if ($context > 1) {
-                  $filters['inst'] = array($context);
-                  $context_prov_ids = Provider::whereIn('inst_id',[1,$context])->pluck('global_id')->toArray();
-                  $limit_prov_ids = (count($limit_prov_ids) == 0) ? $context_prov_ids
-                                                                  : array_intersect($context_prov_ids, $limit_prov_ids);
+            if ($context > 1 || $consoOnly) {
+                $providers = Provider::whereIn('inst_id',[1,$context])->get(['id','inst_id','global_id']);
+                $global_ids = $providers->pluck('global_id')->toArray();
+                if ($context > 1) {
+                    $limit_prov_ids = (count($limit_prov_ids) == 0) ? $global_ids
+                                                                    : array_intersect($global_ids, $limit_prov_ids);
+                }
+                if ($consoOnly) {
+                    $conso_prov_ids = $providers->where('inst_id',1)->pluck('global_id')->toArray();
+                    $limit_prov_ids = (count($limit_prov_ids) == 0) ? $conso_prov_ids
+                                                                    : array_intersect($conso_prov_ids, $limit_prov_ids);
+                }
             }
 
             // Get sushi settings

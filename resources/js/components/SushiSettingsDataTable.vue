@@ -565,6 +565,7 @@
             let _filters = JSON.stringify(this.filters);
             let url = "/sushisettings?json=1&filters="+_filters;
             if (this.inst_context > 1) url+="&context="+this.inst_context;
+            if (this.conso_switch > 0) url+="&consoOnly="+this.conso_switch;
             axios.get(url)
                  .then((response) => {
                    this.connectors = [ ...response.data.connectors ];
