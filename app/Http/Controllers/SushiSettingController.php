@@ -71,7 +71,7 @@ class SushiSettingController extends Controller
             if ($request->input('context')) {
                 $context = ($request->input('context') > 0) ? $request->input('context') : 1;
             }
-            $consoOnly = ($request->input('consoOnly') > 0) ? $request->input('consoOnly') : 0;
+            $consoOnly = ($request->input('consoOnly') > 0);
             $limit_prov_ids = (count($filters['prov']) > 0) ? $filters['prov'] : [];
             if ($context > 1 || $consoOnly) {
                 $providers = Provider::whereIn('inst_id',[1,$context])->get(['id','inst_id','global_id']);
