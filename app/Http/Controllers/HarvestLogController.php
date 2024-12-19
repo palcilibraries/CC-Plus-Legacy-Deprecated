@@ -1162,25 +1162,16 @@ class HarvestLogController extends Controller
            $rec['error'] = $harvest->lastError->toArray();
        }
        $rec['failed'] = [];
-       if ($harvest->failedHarvests) {
-           // Build a URL to test+confirm the error(s); let Sushi class do the work
-           $beg = $harvest->yearmon . '-01';
-           $end = $harvest->yearmon . '-' . date('t', strtotime($beg));
-           $sushi = new Sushi($beg, $end);
-           // setup required connectors for buildUri
-           $prov_connectors = $harvest->sushiSetting->provider->connectors;
-           $connectors = $this->connection_fields->whereIn('id',$prov_connectors)->pluck('name')->toArray();
-           $rec['retryUrl'] = $sushi->buildUri($harvest->sushiSetting, $connectors, 'reports', $harvest->report);
-           // Format and save the failed records
-           foreach ($harvest->failedHarvests->sortByDesc('created_at') as $fh) {
-               $info = array("id" => $fh->id, "code" => $fh->ccplusError->id, "message" => $fh->ccplusError->message);
-               // U/I will point to COUNTER docs for details on COUNTER error codes
-               $info['ts'] = ($fh->created_at) ? date("Y-m-d H:i", strtotime($fh->created_at)) : " ";
-               $info['detail'] = ($fh->ccplusError->id < 1000 || $fh->ccplusError->id >= 9000) ? $fh->detail : "";
-               $info['help_url'] = (is_null($fh->help_url)) ? "" : $fh->help_url;
-               $rec['failed'][] = $info;
-           }
-       }
+
+       // Build a URL to test+confirm the error(s); let Sushi class do the work
+       $beg = $harvest->yearmon . '-01';
+       $end = $harvest->yearmon . '-' . date('t', strtotime($beg));
+       $sushi = new Sushi($beg, $end);
+ 
+       // setup required connectors for buildUri
+       $prov_connectors = $harvest->sushiSetting->provider->connectors;
+       $connectors = $this->connection_fields->whereIn('id',$prov_connectors)->pluck('name')->toArray();
+       $rec['retryUrl'] = $sushi->buildUri($harvest->sushiSetting, $connectors, 'reports', $harvest->report);
        return $rec;
    }
 

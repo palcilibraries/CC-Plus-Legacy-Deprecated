@@ -188,12 +188,10 @@
     </div>
     <v-data-table v-if='is_admin || is_manager' v-model="selectedRows" :headers="headers" :items="mutable_harvests"
                   :loading="loading" show-select item-key="id" :options="mutable_dt_options" @update:options="updateOptions"
-                  :footer-props="footer_props" :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey"
-                  :search="search">
+                  :footer-props="footer_props" :key="dtKey" :search="search">
       <template v-slot:top="{ pagination, options, updateOptions }">
         <v-data-footer :pagination="pagination" :options="mutable_dt_options" @update:options="updateOptions"
-                       items-per-page-text="$vuetify.dataTable.itemsPerPageText" :items-per-page-options="dt_page_options"
-                       />
+                       items-per-page-text="$vuetify.dataTable.itemsPerPageText" :items-per-page-options="dt_page_options"/>
       </template>
       <template v-slot:item.prov_name="{ item }">
         <span v-if="item.prov_inst_id==1">
@@ -208,61 +206,19 @@
         <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)" color="#3686B4">mdi-barley</v-icon>
       </template>
       <template v-slot:item.error.id="{ item }">
-        <span v-if="item.error.id>0">{{ item.error.id }}</span>
+        <span v-if="item.error.id>0">
+          {{ item.error.id }} 
+          <v-icon title="View Error Details" @click="showErrorDetails(item.error)" color="#3686B4">mdi-dots-vertical</v-icon>
+        </span>
         <span v-else >Success</span>
       </template>
-      <template v-slot:item.data-table-expand="{ item, isExpanded, expand }">
-        <span v-if="item.error.id>0 && !isExpanded">
-          <v-icon title="Error Details" @click="expand(true)" color="#3686B4">mdi-dots-vertical</v-icon>
+      <template v-slot:item.status="{ item }">
+        <span >
+          <v-icon v-if="item.status == 'Success'" title="Success" color="#00dd00">mdi-record</v-icon>
+          <v-icon v-else-if="item.status == 'NoRetries'" title="NoRetries" color="#ff9900">mdi-record</v-icon>
+          <v-icon v-else-if="item.status == 'Fail'" title="Failed" color="#dd0000">mdi-record</v-icon>
+          <v-icon v-else="item.status == 'Other Status?'" title="Other" color="#999999">mdi-record</v-icon>
         </span>
-        <span v-if="item.error.id>0 && isExpanded">
-          <v-icon title="Close" @click="expand(false)">mdi-close</v-icon>
-        </span>
-      </template>
-      <template v-slot:expanded-item="{ headers, item }">
-        <td v-if="item.failed.length>0" :colspan="headers.length">
-          <v-row class="d-flex py-2 justify-center" no-gutters>
-            <strong>Failed Harvest Attempts (Harvest ID: {{ item.id }})</strong>&nbsp; &nbsp;
-            <span>
-              <v-icon v-if="item.rawfile!=null" title="Download Last JSON Error Message"
-                      @click="goURL('/harvests/'+item.id+'/raw')">mdi-code-json</v-icon>
-              &nbsp; &nbsp;
-              <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)">mdi-barley</v-icon>
-            </span>
-          </v-row>
-          <v-row class="d-flex pa-1 align-center" no-gutters>
-            <v-col class="d-flex px-2" cols="2"><strong>Attempted</strong></v-col>
-            <v-col class="d-flex px-2" cols="8"><strong>Message</strong></v-col>
-            <v-col class="d-flex px-2" cols="1"><strong>Help</strong></v-col>
-            <v-col class="d-flex px-2" cols="1"><strong>Error</strong></v-col>
-          </v-row>
-          <v-row class="d-flex py-1 align-center" no-gutters><hr width="100%"></v-row>
-          <div v-for="attempt in item.failed" :key="item.id" class="report-field">
-            <v-row class="d-flex ma-0" no-gutters>
-              <v-col class="d-flex px-2" cols="2">{{ attempt.ts }}</v-col>
-              <v-col class="d-flex px-2" cols="8">
-                {{ attempt.message }}
-              </v-col>
-              <v-col class="d-flex px-2" cols="1">
-                <span v-if="!attempt.help_url || attempt.help_url.trim().length === 0">&nbsp;</span>
-                <span v-else>
-                  <v-icon title="Platform Error Help" @click="goURL(attempt.help_url)">mdi-help-box-outline</v-icon>
-                </span>
-              </v-col>
-              <v-col class="d-flex px-2" cols="1">
-                {{ attempt.code }}
-                <span v-if="attempt.code>=1000 && attempt.code<9000">
-                  <v-icon title="COUNTER Error Details" @click="goCounter()">mdi-open-in-new</v-icon>
-                </span>
-              </v-col>
-            </v-row>
-            <v-row v-if="attempt.detail.length>0" class="d-flex ma-0" no-gutters>
-              <v-col class="d-flex" cols="2">&nbsp;</v-col>
-              <v-col class="d-flex" cols="8">{{ attempt.detail }}</v-col>
-              <v-col class="d-flex" cols="2">&nbsp;</v-col>
-            </v-row>
-          </div>
-        </td>
       </template>
       <v-alert slot="no-results" :value="true" color="error" icon="warning">
         Your search for "{{ search }}" found no results.
@@ -282,6 +238,37 @@
         <span v-else>&nbsp;</span>
       </template>
     </v-data-table>
+    <v-dialog v-model="ccplusErrorDetails" max-width="400px">
+        <v-card>
+          <v-card-title>
+            <span v-if="current_error.id<9000">COUNTER Error : {{ current_error.id }}</span>
+            <span v-else>CC-Plus Error : {{ current_error.id }}</span>
+            <v-spacer></v-spacer>
+          </v-card-title>
+          <v-card-text>
+            <v-container grid-list-md>
+              <v-row class="d-flex mb-2" no-gutters>
+                <v-col class="d-flex">{{ current_error.message }}</v-col>
+              </v-row>
+              <v-row class="d-flex mb-1" no-gutters>
+                <v-col class="d-flex pa-0" cols="3"><strong>Details:</strong></v-col>
+                <v-col class="d-flex px-4" cols="9">{{ current_error.explanation }}</v-col>
+              </v-row>
+              <v-row class="d-flex mb-1" no-gutters>
+                <v-col class="d-flex pa-0" cols="3"><strong>Suggestion:</strong></v-col>
+                <v-col class="d-flex px-4" cols="9">{{ current_error.suggestion }}</v-col>
+              </v-row>
+              <v-row v-if="current_error.id<9000" class="d-flex mb-1" no-gutters>
+                <v-col class="d-flex pa-0">
+                  <a href="#" @click="goCOUNTER(current_error.id)">
+                    Open COUNTER Details <v-icon>mdi-open-in-new</v-icon>
+                  </a>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+        </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -310,7 +297,7 @@
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Harvest ID', value: 'id', align: 'center', width: '100px'},
           { text: 'Result', value: 'error.id' },
-          { text: '', value: 'data-table-expand', align: 'center'},
+          { text: '', value: 'status', align: 'center', sortable: false},
         ],
         dt_page_options: [10,50,100,-1],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
@@ -321,7 +308,6 @@
         limit_prov_ids: [],
         mutable_dt_options: {},
         mutable_updated: [],
-        expanded: [],
         mutable_options: { 'providers': [], 'institutions': [], 'codes': [], 'reports': [], 'yymms': [] },
         allSelected: {'providers':false, 'institutions':false, 'codes':false, 'groups':false, 'yymms':false},
         truncatedResult: false,
@@ -338,6 +324,8 @@
         success: '',
         failure: '',
         loading: false,
+        ccplusErrorDetails: false,
+        current_error: {},
         update_button: "Display Records",
         search: '',
       }
@@ -560,14 +548,21 @@
         goEdit (logId) {
             window.location.assign('/harvests/'+logId+'/edit');
         },
-        goCounter() {
-            window.open("https://cop5.projectcounter.org/en/5.0.3/appendices/f-handling-errors-and-exceptions.html", "_blank");
-        },
         goURL(url) {
           window.open(url, "_blank");
         },
-        expandRow (item) {
-          this.expanded = item === this.expanded[0] ? [] : [item]
+        goCOUNTER(errorId) {
+            let features = "";
+            let _url = "https://cop5.projectcounter.org/en/5.0.3/appendices/f-handling-errors-and-exceptions.html";
+            if ('fragmentDirective' in document) {
+              _url += "#:~:text="+errorId.toString();
+              features += "noopener";
+            }
+            window.open(_url, "_blank", features);
+        },
+        showErrorDetails(error) {
+            this.current_error = { ...error };
+            this.ccplusErrorDetails = true;
         },
         // @change function for filtering/clearing all consortium providers
         filterConsoProv() {
