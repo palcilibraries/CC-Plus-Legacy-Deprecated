@@ -297,7 +297,7 @@
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Harvest ID', value: 'id', align: 'center', width: '100px'},
           { text: 'Result', value: 'error.id' },
-          { text: '', value: 'status', align: 'center', sortable: false},
+          { text: 'Status', value: 'status', align: 'center'},
         ],
         dt_page_options: [10,50,100,-1],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
