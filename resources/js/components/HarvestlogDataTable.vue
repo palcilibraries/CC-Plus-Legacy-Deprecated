@@ -190,6 +190,11 @@
                   :loading="loading" show-select item-key="id" :options="mutable_dt_options" @update:options="updateOptions"
                   :footer-props="footer_props" :expanded="expanded" @click:row="expandRow" show-expand :key="dtKey"
                   :search="search">
+      <template v-slot:top="{ pagination, options, updateOptions }">
+        <v-data-footer :pagination="pagination" :options="mutable_dt_options" @update:options="updateOptions"
+                       items-per-page-text="$vuetify.dataTable.itemsPerPageText" :items-per-page-options="dt_page_options"
+                       />
+      </template>
       <template v-slot:item.prov_name="{ item }">
         <span v-if="item.prov_inst_id==1">
           <v-icon title="Consortium Platform">mdi-account-multiple</v-icon>&nbsp;
@@ -307,6 +312,7 @@
           { text: 'Result', value: 'error.id' },
           { text: '', value: 'data-table-expand', align: 'center'},
         ],
+        dt_page_options: [10,50,100,-1],
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
         mutable_harvests: this.harvests,
         mutable_filters: this.filters,
