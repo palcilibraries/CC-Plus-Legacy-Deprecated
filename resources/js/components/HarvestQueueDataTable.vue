@@ -190,6 +190,11 @@
         {{ item.prov_name.substr(0,63) }}
         <span v-if="item.prov_name.length>63">...</span>
       </template>
+      <template v-slot:item.id="{ item }">
+        <span v-if="item.rawfile!=null">{<a title="Downloaded JSON" :href="'/harvests/'+item.id+'/raw'">{{ item.id }}</a>}</span>
+        <span v-else>{{ item.id }}</span>
+        <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)" color="#3686B4">mdi-barley</v-icon>
+      </template>
       <template v-slot:item.error_id="{ item }">
         <span>{{ item.dStatus }}</span>
         <span v-if="item.error_id>0">&nbsp;({{ item.error_id }})</span>
@@ -456,6 +461,9 @@
               this.bulkAction = '';
           })
           .catch({});
+        },
+        goURL(url) {
+          window.open(url, "_blank");
         },
     },
     computed: {

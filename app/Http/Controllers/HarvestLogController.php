@@ -1030,10 +1030,10 @@ class HarvestLogController extends Controller
        // Setup "display names" for internal system status values
        $displayStatus = array('Queued' => 'Harvest Queue', 'Harvesting' => 'Harvesting', 'Pending' => 'Queued by Vendor',
                               'Paused' => 'Paused', 'ReQueued' => 'ReQueued', 'Waiting' => 'Process Queue',
-                              'Processing' => 'Processing', 'NoRetries' => "Out of Retries");
+                              'Processing' => 'Processing');
 
-       // Get the harvests, by-status, that are not currently running (limit to 500 records)
-       $all_data = HarvestLog::with('sushiSetting','sushiSetting.provider:id,name','sushiSetting.institution:id,name','report')
+       // Get all harvests, by-status, that are currently running
+       $all_data = HarvestLog::with('sushiSetting','sushiSetting.provider','sushiSetting.institution:id,name','report')
                              ->whereIn('status',array_keys($displayStatus))
                              ->when(count($filters["reports"]) > 0, function ($qry) use ($filters) {
                                  return $qry->whereIn("report_id", $filters["reports"]);
@@ -1058,18 +1058,21 @@ class HarvestLogController extends Controller
                              ->get();
 
 
-       // Get the harvests that are currently running and combine with at-most 500 "queued" harvests
+       // Grab the harvests that are currently running and make these the "first" harvests in the output array
        $exec_records = $all_data->whereIn('status',['Harvesting','Processing']);
        $exec_ids = $exec_records->pluck('id')->toArray();
-       $queue_records = $all_data->whereNotIn('id',$exec_ids)->take(500);
-       $data = $exec_records->merge($queue_records);
-       $truncated = ($all_data->count() > 500);
+       $data = $all_data->whereNotIn('id',$exec_ids);
+       foreach ($exec_records as $e_rec) {
+           $data->prepend($e_rec);
+       }
 
        // Get global Queue rows for the harvests (if they have one)
        $harvest_ids = $data->pluck('id')->toArray();
        $jobs = SushiQueueJob::where('consortium_id',$con->id)->whereIn('harvest_id',$harvest_ids)->get();
 
-       // map the results
+       // Build an output array of no more than 500 harvests
+       $output_count = 0;
+       $truncated = false;
        $harvests = array();
        foreach ($data as $rec) {
           if ( (count($limit_to_insts) > 0 && !in_array($rec->sushiSetting->inst_id, $limit_to_insts)) ||
@@ -1083,10 +1086,27 @@ class HarvestLogController extends Controller
           $rec->created_at = ($active_job) ? $active_job->created_at : $rec->updated_at;
           $rec->created = ($rec->created_at) ? date("Y-m-d H:i", strtotime($rec->created_at)) : " ";
           $rec->dStatus = $displayStatus[$rec->status];
+
+          // Add a test+confirm URL
+          $beg = $rec->yearmon . '-01';
+          $end = $rec->yearmon . '-' . date('t', strtotime($beg));
+          $sushi = new Sushi($beg, $end);
+          // setup required connectors for buildUri
+          $prov_connectors = $rec->sushiSetting->provider->connectors;
+          $connectors = $this->connection_fields->whereIn('id',$prov_connectors)->pluck('name')->toArray();
+          $rec->retryUrl = $sushi->buildUri($rec->sushiSetting, $connectors, 'reports', $rec->report);
+          // add record to the outbound array
           $harvests[] = $rec->toArray();
+
+          // Limit to 500 rows of output
+          $output_count++;
+          if ($output_count == 500) {
+              $truncated = true;
+              break;
+          }
        }
 
-       // grab IDs/values for setting filter option in the UI
+       // grab IDs/values for setting filter option in the UI (based on ALL data, not the output array)
        $repts = $all_data->unique('report_id')->pluck('report_id')->toArray();
        $yymms = $all_data->unique('yearmon')->sortBy('yearmon')->pluck('yearmon')->toArray();
        $stats = $all_data->unique('status')->sortBy('status')->pluck('status')->toArray();
