@@ -208,16 +208,13 @@
       <template v-slot:item.error.id="{ item }">
         <span v-if="item.error.id>0">
           {{ item.error.id }} 
-          <v-icon title="View Error Details" @click="showErrorDetails(item.error)" color="#3686B4">mdi-dots-vertical</v-icon>
+          <v-icon title="View Error Details" @click="showErrorDetails(item.error)" :class="item.status">mdi-dots-vertical</v-icon>
         </span>
         <span v-else >Success</span>
       </template>
       <template v-slot:item.status="{ item }">
         <span >
-          <v-icon v-if="item.status == 'Success'" title="Success" color="#00dd00">mdi-record</v-icon>
-          <v-icon v-else-if="item.status == 'NoRetries'" title="NoRetries" color="#ff9900">mdi-record</v-icon>
-          <v-icon v-else-if="item.status == 'Fail'" title="Failed" color="#dd0000">mdi-record</v-icon>
-          <v-icon v-else="item.status == 'Other Status?'" title="Other" color="#999999">mdi-record</v-icon>
+          <v-icon :title="item.status" :class="item.status">mdi-record</v-icon>
         </span>
       </template>
       <v-alert slot="no-results" :value="true" color="error" icon="warning">
@@ -679,7 +676,11 @@
 .x-box { width: 16px;  height: 16px; flex-shrink: 0; }
 .close-popup {
   position: absolute !important;
-  top: 0;
-  right: 0;
+  top: 5px;
+  right: 5px;
 }
+.Success { color: #00dd00; }
+.Fail { color: #dd0000; }
+.NoRetries { color: #ff9900; }
+.Other { color: #999999 }
 </style>
