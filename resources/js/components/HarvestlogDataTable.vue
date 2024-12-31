@@ -240,6 +240,11 @@
     </v-data-table>
     <v-dialog v-model="ccplusErrorDetails" max-width="400px">
         <v-card>
+          <v-card-actions>
+            <v-icon title="Close" class="close-popup" @click="ccplusErrorDetails=false" color="black">
+              mdi-close-thick
+            </v-icon>
+          </v-card-actions>
           <v-card-title>
             <span v-if="current_error.id<9000">COUNTER Error : {{ current_error.id }}</span>
             <span v-else>CC-Plus Error : {{ current_error.id }}</span>
@@ -672,4 +677,9 @@
 </script>
 <style scoped>
 .x-box { width: 16px;  height: 16px; flex-shrink: 0; }
+.close-popup {
+  position: absolute !important;
+  top: 0;
+  right: 0;
+}
 </style>
