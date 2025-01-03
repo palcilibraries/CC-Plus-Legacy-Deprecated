@@ -95,10 +95,14 @@ class Sushi extends Model
        // Make sure $json is a proper object
         $this->json = json_decode($result->getBody());
         if (!is_object($this->json)) {
-            $this->detail = " request returned " . (is_array($this->json) ? 'an array' : 'a scalar');
             $this->step = "JSON";
-            $this->message = "JSON is not an object : ";
-            $this->error_code = 9030;
+            $this->message = "Reported Dataset Formatting Invalid - JSON Expected, something else returned.";
+            $this->error_code = 9020;
+            if (is_array($this->json)) {
+                $this->detail = " request returned an array";
+            } else {
+                $this->detail = " request returned a scalar";
+            }
             return "Fail";
         }
         unset($result);
