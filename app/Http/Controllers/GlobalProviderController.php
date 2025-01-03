@@ -234,9 +234,11 @@ class GlobalProviderController extends Controller
       }
       if (array_key_exists('refreshable', $input)) {
           $provider->refreshable = ($input['refreshable']) ? 1 : 0;
-          if ($provider->refreshable == 0) {
-              $provider->refresh_result = null;
-          }
+      } else {
+          $provider->refreshable = 0;
+      }
+      if ($provider->refreshable == 0) {
+          $provider->refresh_result = null;
       }
 
       // Pull all connection fields and master reports
