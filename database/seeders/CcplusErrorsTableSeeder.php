@@ -171,7 +171,17 @@ class CcplusErrorsTableSeeder extends Seeder
                  'new_status' => 'Fail'
              ],
              ['id'=>9020, 'message' => 'Error decoding JSON', 'severity_id' => 99,
-                 'explanation' => 'The report received from the provider has technical errors in its formatting.',
+                 'explanation' => 'The dataset received from the provider has technical errors in its formatting.',
+                 'suggestion' => 'Contact the provider to report this issue.',
+                 'new_status' => 'Fail'
+             ],
+             ['id'=>9021, 'message' => 'JSON Decoding Error - invalid/corrupt JSON', 'severity_id' => 99,
+                 'explanation' => 'The dataset received appears to contain invalid JSON.',
+                 'suggestion' => 'Contact the provider to report this issue.',
+                 'new_status' => 'Fail'
+             ],
+             ['id'=>9022, 'message' => 'JSON Decoding Error - HTML received', 'severity_id' => 99,
+                 'explanation' => 'The dataset received appears to contain HTML.',
                  'suggestion' => 'Contact the provider to report this issue.',
                  'new_status' => 'Fail'
              ],
