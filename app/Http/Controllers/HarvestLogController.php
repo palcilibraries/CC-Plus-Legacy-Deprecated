@@ -1177,9 +1177,22 @@ class HarvestLogController extends Controller
                     'error_id' => 0, 'error' => []
                    );
        $rec['updated'] = ($harvest->updated_at) ? date("Y-m-d H:i", strtotime($harvest->updated_at)) : " ";
-       if ($harvest->lastError) {
+       $lastFailed = null;
+       if ($harvest->failedHarvests) {
+           $lastFailed = $harvest->failedHarvests->sortByDesc('created_at')->first();
+       }
+       if ($lastFailed) {
+           $rec['error_id'] = $lastFailed->error_id;
+           $rec['error'] = $lastFailed->ccplusError->toArray();
+           $rec['error']['detail'] = (is_null($lastFailed->detail)) ? '' : $lastFailed->detail;
+           $rec['error']['help_url'] = (is_null($lastFailed->help_url)) ? '' : $lastFailed->help_url;
+           $rec['error']['process_step'] = (is_null($lastFailed->process_step)) ? '' : $lastFailed->process_step;
+       } else if ($harvest->lastError) {
            $rec['error_id'] = $harvest->error_id;
            $rec['error'] = $harvest->lastError->toArray();
+           $rec['error']['detail'] = '';
+           $rec['error']['help_url'] = '';
+           $rec['error']['process_step'] = '';
        }
        $rec['failed'] = [];
 

@@ -235,7 +235,7 @@
         <span v-else>&nbsp;</span>
       </template>
     </v-data-table>
-    <v-dialog v-model="ccplusErrorDetails" max-width="400px">
+    <v-dialog v-model="ccplusErrorDetails" max-width="600px">
         <v-card>
           <v-card-actions>
             <v-icon title="Close" class="close-popup" @click="ccplusErrorDetails=false" color="black">
@@ -259,6 +259,16 @@
               <v-row class="d-flex mb-1" no-gutters>
                 <v-col class="d-flex pa-0" cols="3"><strong>Suggestion:</strong></v-col>
                 <v-col class="d-flex px-4" cols="9">{{ current_error.suggestion }}</v-col>
+              </v-row>
+              <v-row v-if="current_error.detail.length>0" class="d-flex mb-1" no-gutters>
+                <v-col class="d-flex pa-0" cols="3">
+                  <strong>{{ current_error.process_step }} Step:</strong>
+                </v-col>
+                <v-col class="d-flex px-4" cols="9">{{ current_error.detail }}</v-col>
+              </v-row>
+              <v-row v-if="current_error.help_url.length>0" class="d-flex mb-1" no-gutters>
+                <v-col class="d-flex pa-0" cols="3"><strong>Help URL:</strong></v-col>
+                <v-col class="d-flex px-4" cols="9">{{ current_error.help_url }}</v-col>
               </v-row>
               <v-row v-if="current_error.id<9000" class="d-flex mb-1" no-gutters>
                 <v-col class="d-flex pa-0">
@@ -327,7 +337,7 @@
         failure: '',
         loading: false,
         ccplusErrorDetails: false,
-        current_error: {},
+        current_error: {id:null, message:'', explanation:'', detail:'', process_step:'', help_url:''},
         update_button: "Display Records",
         search: '',
       }
