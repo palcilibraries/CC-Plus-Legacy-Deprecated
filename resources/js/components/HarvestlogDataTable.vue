@@ -268,7 +268,9 @@
               </v-row>
               <v-row v-if="current_error.help_url.length>0" class="d-flex mb-1" no-gutters>
                 <v-col class="d-flex pa-0" cols="3"><strong>Help URL:</strong></v-col>
-                <v-col class="d-flex px-4" cols="9">{{ current_error.help_url }}</v-col>
+                <v-col class="d-flex px-4" cols="9">
+                  <a :href="current_error.help_url" target="_blank">{{ current_error.help_url }}</a>
+                </v-col>
               </v-row>
               <v-row v-if="current_error.id<9000" class="d-flex mb-1" no-gutters>
                 <v-col class="d-flex pa-0">
