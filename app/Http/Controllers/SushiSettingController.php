@@ -77,6 +77,7 @@ class SushiSettingController extends Controller
                 $providers = Provider::whereIn('inst_id',[1,$context])->get(['id','inst_id','global_id']);
                 $global_ids = $providers->pluck('global_id')->toArray();
                 if ($context > 1) {
+                    $filters['inst'] = array($context);
                     $limit_prov_ids = (count($limit_prov_ids) == 0) ? $global_ids
                                                                     : array_intersect($global_ids, $limit_prov_ids);
                 }
