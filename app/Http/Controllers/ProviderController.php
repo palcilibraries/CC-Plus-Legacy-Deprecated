@@ -265,7 +265,6 @@ class ProviderController extends Controller
         $added = array();
         $removed = array();
         $input_ids = array();
-        $report_ids = array();
         $master_reports = Report::where('revision',5)->where('parent_id',0)->orderBy('dorder','ASC')->get(['id','name']);
 
         // Get related sushi settings
@@ -306,7 +305,6 @@ class ProviderController extends Controller
         $added = array();
         $removed = array();
         $input_ids = array();
-        $report_ids = array();
         $master_reports = Report::where('revision',5)->where('parent_id',0)->orderBy('dorder','ASC')->get(['id','name']);
         if (isset($input['report_state'])) {
             $current_ids = $provider->reports->pluck('id')->toArray();
@@ -342,21 +340,23 @@ class ProviderController extends Controller
         // Update the provider record
         $provider->update($prov_input);
 
-        // Update is_active value for inst-specific copies if conso-provider status changed
-        if ($provider->inst_id==1 && $was_active!=$new_is_active) {
-            $res = Provider::whereIn('id',$connected_ids)->update(['is_active' => $new_is_active]);
-        }
-
-        // Update related sushi setting(s)
-        foreach ($settings as $setting) {
-            // Went from Active to Inactive
-            if ($was_active) {
-                if ($setting->status != 'Disabled') {
-                    $setting->update(['status' => 'Suspended']);
+        // Handle related settings if is_active changed
+        if ($was_active!=$new_is_active) {
+            // Update is_active value for inst-specific copies if conso-provider status changed
+            if ($provider->inst_id==1) {
+                $res = Provider::whereIn('id',$connected_ids)->update(['is_active' => $new_is_active]);
+            }
+            // Handle related sushi setting(s)
+            foreach ($settings as $setting) {
+                // Went from Active to Inactive
+                if ($was_active) {
+                    if ($setting->status != 'Disabled') {
+                        $setting->update(['status' => 'Suspended']);
+                    }
+                // Went from Inactive to Active
+                } else {
+                    $setting->resetStatus();
                 }
-            // Went from Inactive to Active
-            } else {
-                $setting->resetStatus();
             }
         }
 
@@ -419,7 +419,6 @@ class ProviderController extends Controller
             $input_ids = $conso_connection->reports->pluck('id')->toArray();
         }
         $return_provider->report_state = $this->reportState($master_reports, $conso_reports, $input_ids);
-        $return_provider->can_connect = (!$conso_connection && $is_admin) ? true : false;
         $return_provider->connectors = $global->connectionFields();
         $return_provider->can_edit = true;
         $return_provider->can_delete = true;
@@ -433,7 +432,14 @@ class ProviderController extends Controller
         // Set master reports to the globally available reports
         $master_ids = $global->master_reports;
         $return_provider->master_reports = $master_reports->whereIn('id', $master_ids)->values()->toArray();
-
+        // $return_provider->can_connect = (!$conso_connection && $is_admin) ? true : false;
+        if ($conso_connection) {
+            $return_provider->can_connect = ($conso_connection->allow_inst_specific && !$inst_connection &&
+                                             count($master_ids) > $conso_connection->reports->count()) ? true : false;
+        } else {
+            $return_provider->can_connect = (!$inst_connection) ? true : false;
+        }
+    
         // Setup flags to control per-report icons in the U/I
         $inst_reports = ($inst_connection) ? $inst_connection->reports->pluck('id')->toArray() : [];
         $report_flags = $this->setReportFlags($master_reports, $master_ids, $conso_reports, $inst_reports);
