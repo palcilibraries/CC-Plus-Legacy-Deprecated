@@ -25,7 +25,7 @@
              </ul>
           </p>
           <manual-harvest :institutions="harvest_insts" :inst_groups="groups" :providers="harvest_provs" :all_reports="reports"
-                          :presets="presets" @new-harvests="addHarvests" @updated-harvests="updateHarvests"
+                          :presets="presets" @new-harvests="updateHarvests" @updated-harvests="updateHarvests"
           ></manual-harvest>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -46,9 +46,9 @@
           <h2>Harvest Log</h2>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <harvestlog-data-table :harvests="mutable_harvests" :institutions="institutions" :groups="groups" :providers="providers"
-                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="codes" :key="logKey"
-                                 @restarted-harvest="restartedHarvest"
+          <harvestlog-data-table :harvests="harvests" :institutions="institutions" :groups="groups" :providers="providers"
+                                 :reports="reports" :bounds="mutable_bounds" :filters="filters" :codes="codes"
+                                 @restarted-harvest="updateHarvests"
           ></harvestlog-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -78,42 +78,17 @@
             panels: [],
             harvest_provs: [],
             harvest_insts: [],
-            mutable_harvests: [...this.harvests],
             mutable_bounds: [...this.bounds],
             job_filters: { 'providers': [], 'institutions': [], 'groups':[], 'reports':[], 'yymms': [], 'statuses':[], 'codes':[],
                            'created': null },
-            logKey: 1,
             queueKey: 1,
         }
     },
     methods: {
       updateHarvests (harvests) {
-        var updated=0;
-        harvests.forEach( (harv) => {
-          var idx = this.mutable_harvests.findIndex( h => h.id == harv.id);
-          if (idx >= 0) {
-            this.mutable_harvests[idx] = harv;
-            updated += 1;
-          }
-        });
-        if (updated > 0) {
-          this.logKey += 1;
-          this.queueKey += 1;
-        }
-      },
-      addHarvests ({ harvests, bounds }) {
-        var added=0;
-        harvests.forEach( (harv) => {
-          this.mutable_harvests.push(harv);
-          added += 1;
-        });
-        if (added > 0) {
-          this.mutable_bounds = [...bounds];
-          this.logKey += 1;
-          this.queueKey += 1;
-        }
-      },
-      restartedHarvest () { // Notify HarvestQueue component of restarted harvest
+        // update only the HarvestQueue component; when new harvests are added, HarvestLogs
+        // should still display the originally passed array since it won't need to show
+        // anything changed/added by the ManualHarvest or HarvestQueue components.
         this.queueKey += 1;
       }
     },
