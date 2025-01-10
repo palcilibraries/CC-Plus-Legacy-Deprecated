@@ -253,6 +253,13 @@ class SushiSettingController extends Controller
             return response()->json(['result' => false, 'msg' => 'Platform not unknown or undefined']);
         }
 
+        // If a matching setting already exists, return an error
+        $exists = SushiSetting::where('inst_id',$input['inst_id'])->where('prov_id',$input['prov_id'])->first();
+        if ($exists) {
+            return response()->json(['result' => false,
+                                     'msg' => 'A setting already exists for this provider and institution']);
+        }
+
         // If there is no existing (conso) Provider definition for the global provider, create it now
         $consoProvider = Provider::where('global_id',$gp->id)->whereIn('inst_id', [1,$input['inst_id']])->first();
         if (!$consoProvider && isset($input['report_state'])) {
