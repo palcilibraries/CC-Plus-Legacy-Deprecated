@@ -219,7 +219,7 @@
     },
     mounted() {
       this.form.name = this.user.name;
-      if (this.dtype == 'profile') {
+      if (this.dtype == 'profile' || this.dtype == 'edit') {
         this.form.inst_id = this.user.inst_id;
         this.inst_name = this.user.institution.name;
       } else {

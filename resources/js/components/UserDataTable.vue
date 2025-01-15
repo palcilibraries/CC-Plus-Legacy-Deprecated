@@ -122,11 +122,11 @@
                 If an ID in column-1 of the import file matches an existing user -OR- if the ID does not match any
                 existing user, but the email in column-2 does match an existing user, the import will update that user.
                 Otherwise, the import will perform an "Add" operation. Any import row with an empty or non-existent
-                institution ID in column-9 will be ignored.</li>
+                institution ID in column-9 will be ignored.
               </p>
               <ul><strong>Updating users</strong>:
                 <li>Updates will overrwite all fields for the user, with the possible exception of the password, with
-                    the values in the import file.
+                    the values in the import file.</li>
                 <li>Import rows (with a matching ID) that attempt to set an existing user's email to a value already
                     defined for another user will result in an unchanged email address and other values updated.</li>
                 <li>Rows with a blank or empty password value will result in an unchanged password and the other fields
