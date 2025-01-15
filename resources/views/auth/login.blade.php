@@ -10,7 +10,7 @@
 // Pull the list of consortia from the database for the dropdown
 //
 use App\Consortium;
-$consortia = Consortium::where('is_active',true)->get();
+$consortia = Consortium::where('is_active',true)->orderBy('name')->get();
 if ( sizeof($consortia) == 0 ) {
   echo ('<h1>No Active Consortia!</h1><br /><p>The global database is the prime suspect</p>');
   exit();
