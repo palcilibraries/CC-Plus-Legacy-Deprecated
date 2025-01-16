@@ -98,8 +98,19 @@ class Sushi extends Model
             $this->step = "JSON";
             $this->message = "Reported Dataset Formatting Invalid - JSON Expected, something else returned.";
             $this->error_code = 9020;
+            // Check for an array of JSON objects
             if (is_array($this->json)) {
-                $this->detail = " request returned an array";
+                $gotError = false;
+                foreach ($this->json as $err) {
+                    if (is_object($err) && !$gotError) {
+                        if ($this->jsonHasExceptions($err)) {
+                            $gotError = true;
+                        }
+                    }
+                }
+                if (!$gotError) {
+                    $this->detail = " request returned an array";
+                } 
             } else {
                 // Need a way to detect/flag whether we got HTML (usually as a string?)
                 if (substr($this->json,0,1) == "{") { // Badly formed JSON?
@@ -118,7 +129,7 @@ class Sushi extends Model
         unset($result);
 
        // Check JSON for exceptions
-        if ($this->jsonHasExceptions()) {
+        if ($this->jsonHasExceptions($this->json)) {
            // Check for "queued" state response
             if ($this->error_code == 1011) {
                 return "Pending";
@@ -287,13 +298,13 @@ class Sushi extends Model
      *
      * @return boolean $has_exception
      */
-    public function jsonHasExceptions()
+    public function jsonHasExceptions($json)
     {
         $jException = null;
-        // Standardize the JSON keys (in a copy) before looking for exceptions, leave $this->json unchanged
+        // Standardize the JSON keys before looking for exceptions
         $ucwJson = json_decode(
                        json_encode(
-                           array_combine(array_map('ucwords', array_keys( (array) $this->json)), (array) $this->json)
+                           array_combine(array_map('ucwords', array_keys( (array) $json)), (array) $json)
                        )
                    );
 
