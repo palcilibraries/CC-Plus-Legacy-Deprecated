@@ -33,7 +33,7 @@
             </v-row>
             <v-row class="d-flex mx-2">
               <v-text-field v-model="form.ccp_key" label="Database Prefix Key" outlined dense :readonly="dialogType=='edit'"
-                            :rules="[rules.required]"  hint="Cannot be modified once created!"
+                            :rules="pkRules"  hint="Cannot be modified once created!"
               ></v-text-field>
             </v-row>
             <v-row v-if="dialogType=='create' && form.ccp_key.length>0" class="d-flex mx-2 mb-2 warning-message">
@@ -124,9 +124,6 @@
             admin_pass: '',
             admin_confirm_pass: '',
         }),
-        rules: {
-          required: value => !!value || 'Field is required',
-        },
       }
     },
     methods: {
@@ -245,6 +242,11 @@
       },
     },
     computed: {
+      pkRules() {
+        return [ v => !!v || 'Prefix Key is required',
+                 v => v.length <= 10 || 'Prefix Key limited to 10 characters'
+               ];
+      },
       passwordRules() {
           if (this.dialogType == 'create') {
               return [ v => !!v || 'Password is required',
