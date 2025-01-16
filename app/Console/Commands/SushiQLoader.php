@@ -74,6 +74,8 @@ class SushiQLoader extends Command
             $this->line('Cannot locate Consortium: ' . $conarg);
             return 0;
         }
+        // Bail out - SILENTLY - if harvesting is disabled for this consortium 
+        if ( !$consortium->enable_harvesting ) return 0;
 
        // Aim the consodb connection at specified consortium's database and initialize the
        // path for keeping raw report responses

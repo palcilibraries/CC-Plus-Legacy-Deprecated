@@ -90,6 +90,10 @@ class SushiQHarvester extends Command
             $conso_ids = $all_jobs->pluck('consortium_id')->unique()->values()->toArray();
             $consortia = Consortium::whereIn('id',$conso_ids)->get();
             foreach ($consortia as $con) {
+                // Skip consortium if harvesting is disabled
+                if (!$con->enable_harvesting) {
+                    continue;
+                }
 
                 // Get jobs for this consortium
                 $jobs = $all_jobs->where('consortium_id',$con->id);
