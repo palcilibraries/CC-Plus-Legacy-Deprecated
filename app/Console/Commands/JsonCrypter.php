@@ -87,6 +87,7 @@ class JsonCrypter extends Command
             $consoFolderIterator = new \FilesystemIterator($path_inst);
             foreach ($consoFolderIterator as $instFile) {
                 $_iname = $instFile->getFilename();
+                if ($_iname == "0_unprocessed") continue;
 
                 // Process provider folders inside
                 $path_prov = $path_inst . "/" . $_iname;
@@ -97,15 +98,24 @@ class JsonCrypter extends Command
                     $path_json = $path_prov . "/" . $_pname;
                     $provFolderIterator = new \FilesystemIterator($path_json);
                     foreach ($provFolderIterator as $jsonFile) {
-                        // $this->line('File: ' . $jsonFile);
                         if ($type == 'encrypt') {
-                            $data = file_get_contents($jsonFile);
-                            if (File::put($jsonFile, Crypt::encrypt(bzcompress($data, 9), false)) === false) {
-                                $this->line("Failed to save raw data in: " . $jsonFile);
+                            try {
+                                $data = file_get_contents($jsonFile);
+                                if (File::put($jsonFile, Crypt::encrypt(bzcompress($data, 9), false)) === false) {
+                                    $this->line("Failed to save encrypted data in: " . $jsonFile);
+                                }
+                            } catch (\Exception $e) {
+                                $this->line("Failed reading from: " . $jsonFile . " (" . $e->getMessage() . ")");
                             }
                         } else {
-                            $data = bzdecompress(Crypt::decrypt(File::get($jsonFile), false));
-                            file_put_contents($jsonFile, $data);
+                            try {
+                                $data = bzdecompress(Crypt::decrypt(File::get($jsonFile), false));
+                                if (File::put($jsonFile, $data, false) === false) {
+                                    $this->line("Failed to save raw data in: " . $jsonFile);
+                                }
+                            } catch (\Exception $e) {
+                                $this->line("Failed decrypting: " . $jsonFile . " (" . $e->getMessage() . ")");
+                            }
                         }
                     } // process JSON files
                 } // process provider folders
