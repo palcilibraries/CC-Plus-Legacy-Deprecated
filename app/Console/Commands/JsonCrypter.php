@@ -98,22 +98,27 @@ class JsonCrypter extends Command
                     $path_json = $path_prov . "/" . $_pname;
                     $provFolderIterator = new \FilesystemIterator($path_json);
                     foreach ($provFolderIterator as $jsonFile) {
+                        $this->output->write("\rProcessing: ".str_pad($jsonFile,80,' '), false);
                         if ($type == 'encrypt') {
                             try {
                                 $data = file_get_contents($jsonFile);
                                 if (File::put($jsonFile, Crypt::encrypt(bzcompress($data, 9), false)) === false) {
+                                    $this->output->write("\n",true);
                                     $this->line("Failed to save encrypted data in: " . $jsonFile);
                                 }
                             } catch (\Exception $e) {
+                                $this->output->write("\n",true);
                                 $this->line("Failed reading from: " . $jsonFile . " (" . $e->getMessage() . ")");
                             }
                         } else {
                             try {
                                 $data = bzdecompress(Crypt::decrypt(File::get($jsonFile), false));
                                 if (File::put($jsonFile, $data, false) === false) {
+                                    $this->output->write("\n",true);
                                     $this->line("Failed to save raw data in: " . $jsonFile);
                                 }
                             } catch (\Exception $e) {
+                                $this->output->write("\n",true);
                                 $this->line("Failed decrypting: " . $jsonFile . " (" . $e->getMessage() . ")");
                             }
                         }
@@ -121,5 +126,6 @@ class JsonCrypter extends Command
                 } // process provider folders
             } // process institution-folders
         } // process consortium-folders
+        $this->output->write("\nDone!",true);
     }
 }
