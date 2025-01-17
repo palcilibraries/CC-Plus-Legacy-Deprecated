@@ -97,7 +97,7 @@ class JsonCrypter extends Command
                     $path_json = $path_prov . "/" . $_pname;
                     $provFolderIterator = new \FilesystemIterator($path_json);
                     foreach ($provFolderIterator as $jsonFile) {
-                        $this->line('File: ' . $jsonFile);
+                        // $this->line('File: ' . $jsonFile);
                         if ($type == 'encrypt') {
                             $data = file_get_contents($jsonFile);
                             if (File::put($jsonFile, Crypt::encrypt(bzcompress($data, 9), false)) === false) {
