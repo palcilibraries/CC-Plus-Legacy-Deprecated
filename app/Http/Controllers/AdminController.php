@@ -137,7 +137,7 @@ class AdminController extends Controller
                     } else if ($_rec['inst_id'] > 1) {    // set to inst-specific values?
                         $_setting = $sushi_settings->where('inst_id',$_rec['inst_id'])->first();
                         if ($_setting) {
-                            if ($_setting->last_harvest_id > 0) {
+                            if ($_setting->last_harvest_id > 0 && $_setting->lastHarvest) {
                                 $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
                                 $_rec['last_harvest'] .= date("Y-m-d H:i", strtotime($_setting->lastHarvest->updated_at)) . ")";
                                 $_rec['last_harvest_id'] = $_setting->last_harvest_id;
