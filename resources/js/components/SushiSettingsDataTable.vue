@@ -29,7 +29,7 @@
             <div v-if="inputSync.inst==null || inputSync.inst==''" class="d-flex pa-1 align-center" no-gutters>
               <v-list-item @click="filterAll('inst')">
                  <span v-if="allSelected.inst">Clear Selections</span>
-                 <span v-else>Enable All</span>
+                 <span v-else>Select All</span>
               </v-list-item>
               <v-divider class="mt-1"></v-divider>
             </div>
@@ -61,7 +61,7 @@
             <div v-if="inputSync.prov==null || inputSync.prov==''" class="d-flex pa-1 align-center" no-gutters>
               <v-list-item @click="filterAll('prov')">
                  <span v-if="allSelected.prov">Clear Selections</span>
-                 <span v-else>Enable All</span>
+                 <span v-else>Select All</span>
               </v-list-item>
               <v-divider class="mt-1"></v-divider>
             </div>
@@ -85,7 +85,7 @@
             <div v-if="inputSync.harv_stat==null || inputSync.harv_stat==''" class="d-flex pa-1 align-center" no-gutters>
               <v-list-item @click="filterAll('harv_stat')">
                  <span v-if="allSelected.harv_stat">Clear Selections</span>
-                 <span v-else>Enable All</span>
+                 <span v-else>Select All</span>
               </v-list-item>
               <v-divider class="mt-1"></v-divider>
             </div>
@@ -855,8 +855,7 @@
             if (this.conso_switch == 0) {
               return (this.inst_context == 1) ?
                      this.providers.filter(p => p.connection_count < this.institutions.length) :
-                     this.providers.filter(p => (this.is_admin || p.inst_id==1 || p.inst_id==this.inst_context) &&
-                                                !this.settings.some(s => s.prov_id == p.id) );
+                     this.providers.filter(p => !this.settings.some(s => (s.prov_id == p.id && s.inst_id==this.inst_context)));
             } else {
               return this.contextual_providers.filter(p => p.connection_count < this.institutions.length);
             }

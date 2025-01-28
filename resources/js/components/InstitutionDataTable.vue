@@ -44,7 +44,7 @@
           <template v-slot:prepend-item>
             <v-list-item @click="changeAllGroups">
                <span v-if="allGroups">Clear Selections</span>
-               <span v-else>Enable All</span>
+               <span v-else>Select All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>

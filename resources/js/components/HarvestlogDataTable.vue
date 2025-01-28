@@ -26,7 +26,7 @@
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('providers')">
                <span v-if="allSelected.providers">Clear Selections</span>
-               <span v-else>Enable All</span>
+               <span v-else>Select All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>
@@ -49,7 +49,7 @@
           <template v-if="is_admin || is_viewer" v-slot:prepend-item>
             <v-list-item @click="filterAll('institutions')">
                <span v-if="allSelected.institutions">Clear Selections</span>
-               <span v-else>Enable All</span>
+               <span v-else>Select All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>
@@ -74,7 +74,7 @@
           <template v-if="is_admin || is_viewer" v-slot:prepend-item>
             <v-list-item @click="filterAll('groups')">
                <span v-if="allSelected.groups">Clear Selections</span>
-               <span v-else>Enable All</span>
+               <span v-else>Select All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>
@@ -104,7 +104,7 @@
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('yymms')">
                <span v-if="allSelected.yymms">Clear Selections</span>
-               <span v-else>Enable All</span>
+               <span v-else>Select All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>
@@ -147,7 +147,7 @@
           <template v-slot:prepend-item>
             <v-list-item @click="filterAll('codes')">
                <span v-if="allSelected.codes">Clear Selections</span>
-               <span v-else>Enable All</span>
+               <span v-else>Select All</span>
             </v-list-item>
             <v-divider class="mt-1"></v-divider>
           </template>
