@@ -62,7 +62,7 @@ class ResetAdminPW extends Command
         $databases = array();
         $conarg = $this->argument('consortium');
         if ($conarg) {
-           // Allo update to just the template database
+            // Allow update to just the template database
             if ($conarg == 'template') {
                 $update_con_template = true;
             } else {
@@ -104,27 +104,41 @@ class ResetAdminPW extends Command
         $_setting->value = $hashed_password;
         $_setting->save();
 
-       // If we're updating the template, add it the list of databases
-        if ($update_con_template) $databases[] = "ccplus_con_template";
+        // Updating the template now if requested, ensure server admin user is properly defined
+        if ($update_con_template) {
+            config(['database.connections.consodb.database' => 'ccplus_con_template']);
+            $serverAdminRole = \App\Role::where('name','ServerAdmin')->first();
+            $user = \App\User::where('email', $server_admin)->where('id',1)->first();
+            // If server admin user not found, zap users and reset things
+            if ($user) {
+                $pw_qry  = "UPDATE ccplus_con_template.users SET password = '" . $hashed_password;
+                $pw_qry .= "' where email='" . $server_admin . "'";
+                $result = DB::statement($pw_qry);
+            // User not found, clear users and force an entry for id=1
+            } else {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                $result = DB::statement("DELETE FROM ccplus_con_template.users");
+                DB::table("ccplus_con_template.users")->insert([
+                    ['id' => 1, 'name' => 'Server Administrator', 'password' => $hashed_password,
+                     'email' => $server_admin, 'inst_id' => 1, 'is_active' => 1]
+                    ]);
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                    $user = \App\User::where('id',1)->first();
+            }
+            // make sure server admin role properly defined
+            if ($serverAdminRole && $user) {
+                $user->roles()->detach();
+                $user->roles()->attach($serverAdminRole->id);
+            }
+            $this->line('<fg=cyan>ccplus_con_template Successfully Updated.');
+        }
 
-       // Update all passwords for the requested databases
+        // Update password for the other requested databases
         foreach ($databases as $_db) {
            $pw_qry  = "UPDATE " . $_db . ".users SET password = '" . $hashed_password;
            $pw_qry .= "' where email='" . $server_admin . "'";
            $result = DB::statement($pw_qry);
            $this->line('<fg=cyan>' . $_db . ' Successfully Updated.');
-        }
-
-        // If we've reset the template, reset the role_user table to just the GlobalAdmin role
-        // (to ensure that created consortia inherit the roles settings too)
-        if ($update_con_template) {
-            config(['database.connections.consodb.database' => 'ccplus_con_template']);
-            $globalAdminRole = \App\Role::where('name','GlobalAdmin')->first();
-            $user = \App\User::where('email', $server_admin)->first();
-            if ($globalAdminRole && $user) {
-                $user->roles()->detach();
-                $user->roles()->attach($globalAdminRole->id);
-            }
         }
 
         //Clear config cache:
