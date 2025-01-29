@@ -199,7 +199,7 @@ class DataPurgeCommand extends Command
             $_msg .= "with NO stored usage data.";
             $this->comment($_msg);
             if (sizeof($zero_record_insts) > 0) {
-                $this->comment("Purging these will also remove the associated SUSHI settings.");
+                $this->comment("Purging these will also remove the associated COUNTER API settings.");
                 if (!$this->confirm('ARE YOU SURE you want to proceed with this operation?')) {
                     $this->info('Institutions not changed.');
                     return 0;

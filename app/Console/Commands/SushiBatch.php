@@ -44,7 +44,7 @@ class SushiBatch extends Command
      *
      * @var string
      */
-    protected $description = 'Run SUSHI harvest(s) for a consortium sequentially';
+    protected $description = 'Run COUNTER API harvest(s) for a consortium sequentially';
 
     /**
      * Create a new command instance.

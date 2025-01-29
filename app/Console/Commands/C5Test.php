@@ -197,7 +197,7 @@ class C5Test extends Command
 
         // Make sure there are Report_Items to process
         if (!isset($json->Report_Items)) {
-            throw new \Exception("SUSHI error: no Report_Items included in JSON response.");
+            throw new \Exception("COUNTER API error: no Report_Items included in JSON response.");
         }
 
         // Make sure there are Report_Items to process

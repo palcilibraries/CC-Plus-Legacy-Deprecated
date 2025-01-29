@@ -94,7 +94,7 @@ class AuditSushiSettings extends Command
         // Setup the spreadsheet and build the static ReadMe sheet
         $spreadsheet = new Spreadsheet();
         $settings_sheet = $spreadsheet->getActiveSheet();
-        $settings_sheet->setTitle('SUSHI Settings');
+        $settings_sheet->setTitle('COUNTER Settings');
 
         // Setup a new sheet for the data rows
         $settings_sheet->setCellValue('A1', 'Platform Name');

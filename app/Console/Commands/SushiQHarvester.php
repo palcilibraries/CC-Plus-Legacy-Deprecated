@@ -257,7 +257,7 @@ class SushiQHarvester extends Command
                         if ($sushi->error_code != 3030) {
                            // Print out any non-fatal message from sushi request
                             if ($sushi->message != "") {
-                                $this->line($ts . " QueueHarvester: Non-Fatal SUSHI Exception (" . $job->harvest->id . "): (" .
+                                $this->line($ts . " QueueHarvester: Non-Fatal COUNTER API Exception (" . $job->harvest->id . "): (" .
                                                   $sushi->error_code . ") : " . $sushi->message . ', ' . $sushi->detail);
                                 $error = CcplusError::where('id',$sushi->error_code)->first();
                             }
@@ -272,7 +272,7 @@ class SushiQHarvester extends Command
                                // Any other error, set and record it
                                 } else {
                                     if ($error) {
-                                        FailedHarvest::insert(['harvest_id' => $job->harvest->id, 'process_step' => 'SUSHI',
+                                        FailedHarvest::insert(['harvest_id' => $job->harvest->id, 'process_step' => 'API',
                                                                'error_id' => $sushi->error_code,
                                                                'detail' => $sushi->message . ', ' . $sushi->detail,
                                                                'help_url' => $sushi->help_url, 'created_at' => $ts]);
@@ -299,7 +299,7 @@ class SushiQHarvester extends Command
                            // Clear all existing failed records
                             $deleted = FailedHarvest::where('harvest_id', $job->harvest->id)->delete();
                            // Add a single failed record to record the "no records received" exception
-                            FailedHarvest::insert(['harvest_id' => $job->harvest->id, 'process_step' => 'SUSHI',
+                            FailedHarvest::insert(['harvest_id' => $job->harvest->id, 'process_step' => 'API',
                                                    'error_id' => $sushi->error_code ,
                                                    'detail' => $sushi->message . ', ' . $sushi->detail,
                                                    'help_url' => $sushi->help_url, 'created_at' => $ts]);
@@ -347,7 +347,7 @@ class SushiQHarvester extends Command
                         if ($sushi->error_code != 9010) {
                             $sushi->detail .= " (URL: " . $request_uri . ")";
                         }
-                        $this->line($ts . " QueueHarvester: SUSHI Exception (" . $sushi->error_code . ") : " .
+                        $this->line($ts . " QueueHarvester: COUNTER API Exception (" . $sushi->error_code . ") : " .
                                           " (Harvest: " . $job->harvest->id . ")" . $sushi->message . ", " . $sushi->detail);
                         $job->harvest->error_id = $error->id;
                     }
