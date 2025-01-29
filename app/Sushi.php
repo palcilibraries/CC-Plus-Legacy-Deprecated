@@ -66,7 +66,7 @@ class Sushi extends Model
             $this->step = "HTTP";
             $this->error_code = (property_exists($e, 'Code')) ? $e->getCode() : 9010;
             $this->severity = (property_exists($e, 'Severity')) ? strtoupper($e->getSeverity()) : "ERROR";
-            $this->message = (property_exists($e, 'Message')) ? $e->getMessage() : "SUSHI HTTP request failed, verify URL";
+            $this->message = (property_exists($e, 'Message')) ? $e->getMessage() : "COUNTER API HTTP request failed, verify URL";
             return "Fail";
         }
 
@@ -141,7 +141,7 @@ class Sushi extends Model
             }
 
            // Not queued, signal error.
-            $this->step = "SUSHI";
+            $this->step = "API";
 
             // Override JSON severity with value from CC+ Error table if the code is found there.
             // If code unrecognized and severity is non-Fatal, return Success and let caller handle it.
@@ -167,7 +167,7 @@ class Sushi extends Model
     }
 
    /**
-    * Build and return a SUSHI request URI based on a setting and report
+    * Build and return a COUNTER API request URI based on a setting and report
     *
     * @param SushiSetting $setting
     * @param Array $connectors
@@ -227,7 +227,7 @@ class Sushi extends Model
     }
 
    /**
-    * Validate the JSON from a SUSHI against the COUNTER standard for Release-5
+    * Validate the JSON from a COUNTER API against the COUNTER standard for Release-5
     *
     * @return boolean $result
     */
@@ -258,10 +258,10 @@ class Sushi extends Model
 
        // Make sure there are Report_Items to process
         if (!isset($this->json->Report_Items)) {
-            throw new \Exception("SUSHI error: no Report_Items included in JSON response.");
+            throw new \Exception("COUNTER error: no Report_Items included in JSON response.");
         } else {
             if (sizeof($this->json->Report_Items) <= 0) {
-                throw new \Exception("SUSHI error: Report_Items present but empty.", 9030);
+                throw new \Exception("COUNTER error: Report_Items present but empty.", 9030);
             }
         }
 
@@ -270,7 +270,7 @@ class Sushi extends Model
             $report = new JsonR5Report($this->json);
             $checkResult = $report->getCheckResult();
         } catch (\Exception $e) {
-            throw new \Exception("SUSHI error: c5tools CheckResult threw a validation error.");
+            throw new \Exception("COUNTER error: c5tools CheckResult threw a validation error.");
             //NOTE:: this needs work... c5tools expects something different. For now, just throw simple exception
             // $checkResult = new CheckResult();
             // try {
@@ -290,7 +290,7 @@ class Sushi extends Model
     }
 
     /**
-     * Scan the JSON from a SUSHI request for exceptions and set returned details in
+     * Scan the JSON from a COUNTER API request for exceptions and set returned details in
      * public class variables (sometimes exceptions are expressed differently!)
      *   * JSON Property named "Exception" takes precedence over "Exceptions".
      *   * If an array of exceptions is returned, only the first is reported.

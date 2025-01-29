@@ -118,7 +118,7 @@
             </v-row>
             <v-row class="d-flex ma-0" no-gutters>
               <v-col class="d-flex px-4">
-                <v-text-field v-model="form.server_url_r5" label="SUSHI Server URL" outlined dense></v-text-field>
+                <v-text-field v-model="form.server_url_r5" label="COUNTER Service URL" outlined dense></v-text-field>
               </v-col>
             </v-row>
             <v-row class="d-flex ma-0" no-gutters>
@@ -427,7 +427,7 @@
             } else if (this.bulkAction == 'Delete') {
                 msg += "CAUTION!!<br />Deleting these platform records is not reversible! Platforms with harvested";
                 msg += " data will NOT be deleted.<br />";
-                msg += " NOTE: ALL platform and SUSHI definitions associated with the selected platforms, across all";
+                msg += " NOTE: ALL platform and COUNTER API definitions associated with the selected platforms, across all";
                 msg += " instances in this system will also be deleted!<br />";
             } else {
                 this.failure = "Unrecognized Bulk Action in processBulk!";
@@ -600,8 +600,8 @@
               if (this.warnConnectors) {
                 let warning_html = "One or more required connectors has been marked as no longer required. The current "+
                                    " values defined for these connectors will be cleared THROUGH ALL INSTANCES from the "+
-                                   " SUSHI credentials when the platform is saved.<br />";
-                warning_html += "Having good exports of the SUSHI credentials for all instances could be valuable if you find"
+                                   " COUNTER API credentials when the platform is saved.<br />";
+                warning_html += "Having good exports of the COUNTER API credentials for all instances could be valuable if you find"
                 warning_html += " you need to re-enable the modified connector field.";
                 Swal.fire({
                   title: 'Continue to save?', html: warning_html, icon: 'warning', showCancelButton: true,
@@ -676,7 +676,7 @@
                                " Because this platform has no harvested usage data, it can be safely"+
                                " deleted.<br />";
             warning_html += "<strong>NOTE:</strong><br />ALL Platform entries defined across ALL instances will also";
-            warning_html += " be removed if they exist - INCLUDING all related SUSHI credentials.";
+            warning_html += " be removed if they exist - INCLUDING all related COUNTER API credentials.";
             Swal.fire({
               title: 'Are you sure?', html: warning_html, icon: 'warning', showCancelButton: true,
               confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'Yes, proceed'

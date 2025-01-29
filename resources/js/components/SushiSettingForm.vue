@@ -1,7 +1,7 @@
 <template>
   <div class="details">
   	<v-row no-gutters>
-	    <h1 class="section-title">SUSHI Credentials</h1>
+	    <h1 class="section-title">COUNTER API Credentials</h1>
       <v-col class="d-flex px-4 dt_action" cols="2">
         <v-icon title="Edit Credentials" @click="swapForm">mdi-cog-outline</v-icon>
         &nbsp; &nbsp;
@@ -42,7 +42,7 @@
         <v-col v-if="form.status == 'Enabled'" cols="4"><strong><font color='green'>Harvesting Enabled</font></strong></v-col>
         <v-col v-else><strong><font color='red'>Harvest Status: {{ form.status }}</font></strong></v-col>
         <v-col v-if="setting.next_harvest" cols="8">
-          <strong>Next Harvest: </strong>{{ setting.next_harvest }}</a>
+          <strong>Next Harvest: </strong>{{ setting.next_harvest }}
         </v-col>
       </v-row>
       <v-row class="d-flex ma-0 pt-1">

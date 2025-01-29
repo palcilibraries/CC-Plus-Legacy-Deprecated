@@ -4,10 +4,10 @@
       <v-form v-model="formValid" :key="'UFrm'+form_key">
         <v-row class="d-flex ma-2" no-gutters>
          <v-col v-if="mutable_dtype=='edit'" class="d-flex pt-4 justify-center">
-           <h1 v-if="sushi_prov.inst_id==1" align="center">Edit Consortium SUSHI Credentials</h1>
-           <h1 v-else align="center">Edit Institutional SUSHI Credentials</h1>
+           <h1 v-if="sushi_prov.inst_id==1" align="center">Edit Consortium COUNTER Credentials</h1>
+           <h1 v-else align="center">Edit Institutional COUNTER Credentials</h1>
          </v-col>
-         <v-col v-else class="d-flex pt-4 justify-center"><h1 align="center">Create SUSHI Connection</h1></v-col>
+         <v-col v-else class="d-flex pt-4 justify-center"><h1 align="center">Create COUNTER Connection</h1></v-col>
         </v-row>
         <div v-if="sushi_inst.id==null || sushi_prov.id==null">
           <v-row class="d-flex ma-2 justify-center" no-gutters>
@@ -76,7 +76,7 @@
           </div>
           <v-row v-if="service_url!=null" class="d-flex ma-2" no-gutters>
             <v-col class="d-flex px-2" cols="8">
-              <v-text-field v-model="service_url" label="SUSHI Service URL" outlined disabled></v-text-field>
+              <v-text-field v-model="service_url" label="COUNTER Service URL" outlined disabled></v-text-field>
             </v-col>
           </v-row>
           <div v-if="showTest">

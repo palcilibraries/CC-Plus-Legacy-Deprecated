@@ -41,7 +41,7 @@
       <!-- Sushi Settings -->
       <v-expansion-panel>
   	    <v-expansion-panel-header>
-          <h2>SUSHI Credentials</h2>
+          <h2>COUNTER API Credentials</h2>
   	    </v-expansion-panel-header>
   	    <v-expansion-panel-content>
           <sushisettings-data-table :key="sushiKey" :providers="mutable_providers" :institutions="mutable_institutions"
@@ -67,13 +67,13 @@
     </v-dialog>
     <v-dialog v-model="importDialog" max-width="1200px">
       <v-card>
-        <v-card-title>Import SUSHI Credentials</v-card-title>
+        <v-card-title>Import COUNTER API Credentials</v-card-title>
         <v-card-text>
           <v-container grid-list-md>
             <v-file-input show-size label="CC+ Import File (CSV)" v-model="csv_upload" accept="text/csv" outlined
             ></v-file-input>
             <p>
-              <strong>Note:&nbsp; SUSHI Credential imports operate exclusively as Updates. No existing credentials
+              <strong>Note:&nbsp; COUNTER API Credential imports operate exclusively as Updates. No existing credentials
               will be deleted.</strong>
             </p>
             <p>
@@ -216,7 +216,7 @@
                   title: 'Are you sure?',
                   text: "Deleting an institution cannot be reversed, only manually recreated."+
                         " Because this institution has no harvested usage data, it can be safely"+
-                        " deleted. NOTE: All users and SUSHI credentials connected to this institution"+
+                        " deleted. NOTE: All users and COUNTER API credentials connected to this institution"+
                         " will also be removed.",
                   icon: 'warning',
                   showCancelButton: true,

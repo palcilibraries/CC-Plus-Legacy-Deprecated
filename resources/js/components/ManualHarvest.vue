@@ -198,7 +198,7 @@
                 this.form.prov = [preset_id];
                 this.onProvChange();
             } else {
-                this.failure = 'The preset provider is not available - verify SUSHI credentials';
+                this.failure = 'The preset provider is not available - verify COUNTER API credentials';
                 this.form.prov = [];
                 this.presets['prov_id'] = null;
             }

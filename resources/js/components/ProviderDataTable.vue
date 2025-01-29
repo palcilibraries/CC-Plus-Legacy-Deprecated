@@ -385,14 +385,14 @@
             var Rows = [...this.selectedRows];
             let msg = "Bulk processing will process each requested platform sequentially.<br><br>";
             if (Action=='Set Active') {
-                msg += "Activating these platforms also enable related SUSHI connections, if possible. SUSHI connection<br/>";
+                msg += "Activating these platforms also enable related COUNTER API connections, if possible. COUNTER API connection<br/>";
                 msg += "status will be automatically set based on the completeness of the credentials and the active/inactive ";
                 msg += "state of any connected institution(s).";
             } else if (Action=='Set Inactive') {
                 msg += "Deactivating these platforms will stop all future automated harvesting. Any pending or queued<br />";
-                msg += "harvesting jobs will not be affected. Any related and SUSHI credentials will be set to 'Suspended'.";
+                msg += "harvesting jobs will not be affected. Any related and COUNTER API credentials will be set to 'Suspended'.";
             } else if (Action=='Connect') {
-                msg += "Connecting these platforms will add an empty set of SUSHI credentials for each row, and the<br/>";
+                msg += "Connecting these platforms will add an empty set of COUNTER API credentials for each row, and the<br/>";
                 msg += "credential(s) will be flagged as 'Incomplete'. Until the required credentials are defined, no report<br />";
                 msg += "retrieval will be performed by the CC-Plus automated harvesting system.<br />Connecting platforms";
                 msg += " in-bulk will also enable a single report-assignment (PR/DR/...) for each platform.<br />"
@@ -400,7 +400,7 @@
             } else if (Action=='Disconnect') {
                 msg += "CAUTION!!<br />Disconnecting platform records cannot be reversed!! Platforms with harvested data<br />";
                 msg += "will NOT be changed.<br />";
-                msg += " NOTE: ALL SUSHI credentials associated with the selected platforms will also be deleted!";
+                msg += " NOTE: ALL COUNTER API credentials associated with the selected platforms will also be deleted!";
             } else {
                 this.failure = "Unrecognized Bulk Action in processBulk!";
                 return;
@@ -590,7 +590,7 @@
             if ( this.is_admin) {
               if (provider.inst_id==1) {
                   _notes += "<br /><strong>This is a consortium-wide platform</strong>"+
-                            " Deleting it will remove ALL related SUSHI credentials consortium-wide.";
+                            " Deleting it will remove ALL related COUNTER API credentials consortium-wide.";
               }
               if ( _prov.connection_count > 1) {
                 var _count = (this.inst_context==1) ? _prov.connection_count : "ALL";
@@ -599,7 +599,7 @@
                           " will also be deleted.</strong>";
               }
             } else {
-              _notes += "<br />All SUSHI credentials defined for this platform will also be removed.";
+              _notes += "<br />All COUNTER API credentials defined for this platform will also be removed.";
             }
             _notes += "</font>";
             notice += _notes;

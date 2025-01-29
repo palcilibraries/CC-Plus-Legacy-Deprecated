@@ -194,7 +194,7 @@
         <span class="dt_action">
           <v-icon title="Manual Harvest in new tab" @click="goHarvest(item)">mdi-barley</v-icon>
           &nbsp; &nbsp;
-          <v-icon v-if="item.can_edit" title="Edit SUSHI Credentials" @click="editSetting(item)">mdi-cog-outline</v-icon>
+          <v-icon v-if="item.can_edit" title="Edit COUNTER API Credentials" @click="editSetting(item)">mdi-cog-outline</v-icon>
           <v-icon v-else color="#c9c9c9">mdi-cog-outline</v-icon>
           &nbsp; &nbsp;
           <v-icon v-if="item.can_edit" title="Delete connection" @click="destroy(item)">mdi-trash-can-outline</v-icon>
@@ -207,13 +207,13 @@
     </v-data-table>
     <v-dialog v-model="importDialog" max-width="1200px">
       <v-card>
-        <v-card-title>Import SUSHI Credentials</v-card-title>
+        <v-card-title>Import COUNTER API Credentials</v-card-title>
         <v-card-text>
           <v-container grid-list-md>
             <v-file-input show-size label="CC+ Import File (CSV)" v-model="csv_upload" accept="text/csv" outlined
             ></v-file-input>
             <p>
-              <strong>Note:&nbsp; SUSHI credential imports function exclusively as Updates. Existing credentials for
+              <strong>Note:&nbsp; COUNTER API credential imports function exclusively as Updates. Existing credentials for
               platform-institution pairs not included will be preserved.</strong>
             </p>
             <p>
@@ -240,7 +240,7 @@
     </v-dialog>
     <v-dialog v-model="exportDialog" max-width="600px">
       <v-card>
-        <v-card-title>Export SUSHI Credentials</v-card-title>
+        <v-card-title>Export COUNTER API Credentials</v-card-title>
         <v-card-text>
           <v-container grid-list-md>
             <p>
@@ -248,7 +248,7 @@
               <strong>In order to retrieve all records, all filters must be cleared first.</strong>
             </p>
             <p>
-              <strong>Note:&nbsp; By default, SUSHI credential exports will include ALL possible institutions and platforms
+              <strong>Note:&nbsp; By default, COUNTER API credential exports will include ALL possible institutions and platforms
                 including institution-platform pairs that are not yet defined. Limiting to institution-platform pairs that have
                 no credentials set (checkbox below) exports a list of the missing credentials. Output fields in the export
                 will be labelled where values are required or missing.</strong>
@@ -269,11 +269,11 @@
     </v-dialog>
     <v-dialog v-model="auditDialog" max-width="600px">
       <v-card>
-        <v-card-title>Audit SUSHI Credentials</v-card-title>
+        <v-card-title>Audit COUNTER API Credentials</v-card-title>
         <v-card-text>
           <v-container grid-list-md>
             <p>
-              Generates a spreadsheet showing the institution and platform pairs having defined SUSHI connnections, one per
+              Generates a spreadsheet showing the institution and platform pairs having defined COUNTER API connnections, one per
               row. For each row, the system retrieves the Institution, Created_BY and Plaform values from saved JSON datafile(s)
               (if they exist), and provides a means of detecting mismatched credentials.
             </p>
@@ -820,7 +820,7 @@
               } else if (result == 'Fail') {
                   this.failure = msg;
               } else if (result != 'Cancel') {
-                  this.failure = 'Unexpected Result returned from SUSHI Dialog - programming error!';
+                  this.failure = 'Unexpected Result returned from COUNTER API Dialog - programming error!';
               }
               this.sushiDialog = false;
           },
