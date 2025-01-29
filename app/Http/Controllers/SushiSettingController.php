@@ -607,17 +607,17 @@ class SushiSettingController extends Controller
         // $info_sheet->setCellValue('E20', 'Enabled');
         $info_sheet->setCellValue('A20', 'Customer ID');
         $info_sheet->setCellValue('B20', 'String');
-        $info_sheet->setCellValue('C20', 'SUSHI customer ID , platform-specific');
+        $info_sheet->setCellValue('C20', 'COUNTER API customer ID , platform-specific');
         $info_sheet->setCellValue('D20', 'No');
         $info_sheet->setCellValue('E20', 'NULL');
         $info_sheet->setCellValue('A21', 'Requestor ID');
         $info_sheet->setCellValue('B21', 'String');
-        $info_sheet->setCellValue('C21', 'SUSHI requestor ID , platform-specific');
+        $info_sheet->setCellValue('C21', 'COUNTER API requestor ID , platform-specific');
         $info_sheet->setCellValue('D21', 'No');
         $info_sheet->setCellValue('E21', 'NULL');
         $info_sheet->setCellValue('A22', 'API Key');
         $info_sheet->setCellValue('B22', 'String');
-        $info_sheet->setCellValue('C22', 'SUSHI API Key , platform-specific');
+        $info_sheet->setCellValue('C22', 'COUNTER API API Key , platform-specific');
         $info_sheet->setCellValue('D22', 'No');
         $info_sheet->setCellValue('E22', 'NULL');
         $info_sheet->setCellValue('A23', 'LEAVE BLANK');
@@ -737,7 +737,7 @@ class SushiSettingController extends Controller
                 $fileName .= ($status_name == "") ? "_SomeStauses" : "_".$status_name;
             }
         }
-        $fileName .= "_SushiCredentials.xlsx";
+        $fileName .= "_COUNTERCredentials.xlsx";
 
         // redirect output to client
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
@@ -878,7 +878,7 @@ class SushiSettingController extends Controller
         if ($skipped > 0) {
             $msg .= ($msg != "") ? ", " . $skipped . " skipped" : $skipped . " skipped";
         }
-        $msg  = 'Sushi credentials import completed : ' . $msg;
+        $msg  = 'COUNTER credentials import completed : ' . $msg;
 
         // Create a return object with the settings to be returned.
         if (!$is_admin) {
@@ -982,7 +982,7 @@ class SushiSettingController extends Controller
         // Setup the spreadsheet and build the static ReadMe sheet
         $spreadsheet = new Spreadsheet();
         $settings_sheet = $spreadsheet->getActiveSheet();
-        $settings_sheet->setTitle('SUSHI Settings');
+        $settings_sheet->setTitle('COUNTER API Settings');
 
         // Setup a new sheet for the data rows
         $settings_sheet->setCellValue('A1', 'Platform Name');
@@ -1063,7 +1063,7 @@ class SushiSettingController extends Controller
                  $fileName .= ($status_name == "") ? "_SomeStauses" : "_".$status_name;
              }
          }
-         $fileName .= "_SushiAudit.xlsx";
+         $fileName .= "_COUNTERAudit.xlsx";
 
         // redirect output to client
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);

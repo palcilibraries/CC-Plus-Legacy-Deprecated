@@ -63,7 +63,7 @@ class AdminController extends Controller
         // Get all active global providers
         $global_providers = GlobalProvider::where('is_active', true)->orderBy('name', 'ASC')->get();
 
-        // Get SUSHI settings for the active globals
+        // Get COUNTER API settings for the active globals
         $global_ids = $global_providers->pluck('id')->toArray();
         $all_sushi_settings = SushiSetting::whereIn('prov_id',$global_ids)->with('lastHarvest')->get();
 

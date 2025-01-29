@@ -521,7 +521,7 @@ class GlobalProviderController extends Controller
         // Setup a static array for error handling and reporting
         $errorData = array( array('result' => 'success', 'msg' => "Platform successfully refreshed"),
                             array('result' => 'failed', 'msg' => "Registry Error - sushi services URL undefined"),
-                            array('result' => 'failed', 'msg' => "Registry Error - SUSHI connection details invalid"),
+                            array('result' => 'failed', 'msg' => "Registry Error - COUNTER API connection details invalid"),
                             array('result' => 'failed', 'msg' => "No match for CC+ Registry_ID in Registry")
                           );
 
@@ -832,7 +832,7 @@ class GlobalProviderController extends Controller
         $info_sheet->setCellValue('C17', 'Yes');
         $info_sheet->setCellValue('D17', 'String');
         $info_sheet->setCellValue('E17', 'Valid URL');
-        $info_sheet->setCellValue('F17', 'URL for Platform SUSHI service');
+        $info_sheet->setCellValue('F17', 'URL for Platform COUNTER service');
         $info_sheet->setCellValue('G17', '');
         $info_sheet->setCellValue('H17', '');
         $info_sheet->setCellValue('A18', 'D');
@@ -888,7 +888,7 @@ class GlobalProviderController extends Controller
         $info_sheet->setCellValue('C24', '');
         $info_sheet->setCellValue('D24', 'String');
         $info_sheet->setCellValue('E24', 'Y or N');
-        $info_sheet->setCellValue('F24', 'Customer ID is required for SUSHI connections');
+        $info_sheet->setCellValue('F24', 'Customer ID is required for COUNTER API connections');
         $info_sheet->setCellValue('G24', 'Y');
         $info_sheet->setCellValue('H24', '');
         $info_sheet->setCellValue('A25', 'K');
@@ -896,7 +896,7 @@ class GlobalProviderController extends Controller
         $info_sheet->setCellValue('C25', '');
         $info_sheet->setCellValue('D25', 'String');
         $info_sheet->setCellValue('E25', 'Y or N');
-        $info_sheet->setCellValue('F25', 'Requestor ID is required for SUSHI connections');
+        $info_sheet->setCellValue('F25', 'Requestor ID is required for COUNTER API connections');
         $info_sheet->setCellValue('G25', 'N');
         $info_sheet->setCellValue('H25', '');
         $info_sheet->setCellValue('A26', 'L');
@@ -904,7 +904,7 @@ class GlobalProviderController extends Controller
         $info_sheet->setCellValue('C26', '');
         $info_sheet->setCellValue('D26', 'String');
         $info_sheet->setCellValue('E26', 'Y or N');
-        $info_sheet->setCellValue('F26', 'API Key is required for SUSHI connections');
+        $info_sheet->setCellValue('F26', 'API Key is required for COUNTER API connections');
         $info_sheet->setCellValue('G26', 'N');
         $info_sheet->setCellValue('H26', '');
         $info_sheet->setCellValue('A27', 'M');
@@ -912,7 +912,7 @@ class GlobalProviderController extends Controller
         $info_sheet->setCellValue('C27', '');
         $info_sheet->setCellValue('D27', 'String');
         $info_sheet->setCellValue('E27', 'Y or N');
-        $info_sheet->setCellValue('F27', 'Extra Arguments are required for SUSHI connections');
+        $info_sheet->setCellValue('F27', 'Extra Arguments are required for COUNTER API connections');
         $info_sheet->setCellValue('G27', 'N');
         $info_sheet->setCellValue('H27', '');
         $info_sheet->setCellValue('A28', 'N');
