@@ -59,7 +59,7 @@
       <!-- Settings -->
       <v-expansion-panel>
   	    <v-expansion-panel-header>
-          <h2>SUSHI Credentials</h2>
+          <h2>COUNTER API Credentials</h2>
   	    </v-expansion-panel-header>
   	    <v-expansion-panel-content>
           <sushisettings-data-table :key="sushiKey" :providers="mutable_providers" :institutions="mutable_institutions"
