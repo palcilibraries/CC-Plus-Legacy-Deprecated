@@ -112,7 +112,7 @@ class Sushi extends Model
                     $this->detail = " request returned an array";
                 } 
             } else {
-                $begin_txt = substr(trim($this->json),0,80);
+                $begin_txt = substr(trim($result->getBody()),0,80);
                 // Need a way to detect/flag whether we got HTML (usually as a string?)
                 if (substr($begin_txt,0,1) == "{") { // Badly formed JSON?
                     $this->error_code = 9021;
