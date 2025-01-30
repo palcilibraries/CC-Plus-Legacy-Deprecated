@@ -325,7 +325,7 @@ class InstitutionController extends Controller
                 $_setting = $sushi_settings->where('prov_id',$prov_data->global_id)->first();
                 if ($_setting) {
                     $_rec['last_harvest_id']  = $_setting->last_harvest_id;
-                    if ($_setting->last_harvest_id > 0) {
+                    if ($_setting->lastHarvest) {
                         $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
                         $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
                     } else {
