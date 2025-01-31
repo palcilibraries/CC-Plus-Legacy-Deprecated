@@ -345,8 +345,11 @@
             this.success = "";
             this.failure = "";
             let msg = "";
+            let title_string = "Are you sure?";
             if (this.bulkAction == 'Delete') {
-                msg += "Bulk processing will delete each marked institution sequentially.<br>";
+                title_string = "Are you sure you want these deleted?<br />";
+                this.selectedRows.forEach( (inst) => { msg += "<strong>"+inst.name+"</strong><br />" });
+                msg += "<br />Bulk processing will delete each marked institution sequentially.<br>";
                 msg += "Deleting institutions cannot be reversed, they can only be manually recreated.<br><br>";
                 msg += "Any institution that has harvested usage data will be skipped and left unchanged.<br>";
                 msg += "NOTE: All users and COUNTER API credentials connected to these institutions will also be removed.";
@@ -375,7 +378,7 @@
                 return;
             }
             Swal.fire({
-              title: 'Are you sure?', html: msg, icon: 'warning', showCancelButton: true,
+              title: title_string, html: msg, icon: 'warning', showCancelButton: true,
               confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'Yes, Proceed!'
             })
             .then((result) => {
@@ -518,8 +521,11 @@
              this.institutionImportDialog = false;
         },
         destroy (instid) {
+            var _inst = this.mutable_institutions.find(ii => instid == ii.id);
+            let _title = "About to Delete:<br />";
+            _title += (typeof(_inst) == 'undefined') ? "" : _inst.name;
             Swal.fire({
-              title: 'Are you sure?',
+              title: _title,
               text: "Deleting an institution cannot be reversed, only manually recreated."+
                     " Because this institution has no harvested usage data, it can be safely"+
                     " deleted. NOTE: All users and COUNTER API credentials connected to this institution"+
