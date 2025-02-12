@@ -668,17 +668,22 @@
 
       // Setup date-bounds for the date-selector
       if (typeof(this.bounds[0]) != 'undefined') {
-        this.minYM = this.bounds[0].YM_min;
-        this.maxYM = this.bounds[0].YM_max;
+         this.minYM = this.bounds[0].YM_min;
+         this.maxYM = this.bounds[0].YM_max;
       }
 
       // Remove institution column in output if not admin or viewer
       if (!this.is_admin && !this.is_viewer) {
-         this.headers.splice(this.headers.findIndex(h=>h.value == "inst_name"),1);
+          this.headers.splice(this.headers.findIndex(h=>h.value == "inst_name"),1);
       }
 
       // Subscribe to store updates
       this.$store.subscribe((mutation, state) => { localStorage.setItem('store', JSON.stringify(state)); });
+
+      // If inbound filters given (as a PROP) , get the initial records
+      if (this.filters.institutions.length > 0 || this.filters.providers.length > 0) {
+          this.updateLogRecords();
+      }
 
       console.log('HarvestLogData Component mounted.');
     }

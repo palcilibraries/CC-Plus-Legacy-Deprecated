@@ -96,6 +96,13 @@
         this.harvest_provs = this.providers.filter(p => p.sushi_enabled);
         this.harvest_insts = [ ...this.institutions];
 
+        // If inst/prov filters or presets passed in, force open a panel
+        if (this.presets.inst_id != null || this.presets.prov_id != null) { // manual harvest presets
+            this.panels = [0];
+        } else if (this.filters.institutions.length > 0 || this.filters.providers.length > 0) { // harvestlogs filters
+            this.panels = [2];
+        }
+
         // Subscribe to store updates
         this.$store.subscribe((mutation, state) => { localStorage.setItem('store', JSON.stringify(state)); });
         console.log('Harvesting Component mounted.');

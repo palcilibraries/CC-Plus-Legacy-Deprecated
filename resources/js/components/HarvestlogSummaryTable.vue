@@ -40,7 +40,7 @@
         headers: [
           { text: 'Updated', value: 'updated_at' },
           { text: 'Institution', value: 'inst_name' },
-          { text: 'Provider', value: 'prov_name' },
+          { text: 'Platform', value: 'prov_name' },
           { text: 'Report', value: 'report_name' },
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Attempts', value: 'attempts' },
@@ -54,10 +54,10 @@
     mounted() {
       if (this.inst_id>0 || this.prov_id>0) {
           this.seemore_url+='?';
-          if (this.inst_id>0) this.seemore_url += 'inst='+this.inst_id;
+          if (this.inst_id>0) this.seemore_url += 'institutions='+this.inst_id;
           if (this.prov_id>0) {
               if (this.inst_id>0) this.seemore_url+='&';
-              this.seemore_url += 'prov='+this.prov_id;
+              this.seemore_url += 'providers='+this.prov_id;
           }
       }
       console.log('HarvestLogSummary Component mounted.');
