@@ -421,6 +421,8 @@ class SushiSettingController extends Controller
         $client = new Client();   //GuzzleHttp\Client
         try {
             $response = $client->request('GET', $request_uri, $options);
+            $rows[] = "Requesting from URL: ";
+            $rows[] = $request_uri;
             $rows[] = "JSON Response:";
             $rows[] = json_decode($response->getBody(), JSON_PRETTY_PRINT);
             $result = 'Request response successfully received';
