@@ -56,8 +56,6 @@
   </div>
 </template>
 <script>
-  import Swal from 'sweetalert2';
-  import { mapGetters } from 'vuex'
   export default {
     props: {
             harvests: { type:Array, default: () => [] },
