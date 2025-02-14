@@ -185,7 +185,8 @@
       </v-row>
     </div>
     <v-data-table v-model="selectedRows" :headers="headers" :items="harvest_jobs" :loading="loading" item-key="id" show-select
-                  :footer-props="footer_props" :key="dtKey" :search="search">
+                  :options="mutable_dt_options" @update:options="updateOptions" :footer-props="footer_props" :key="dtKey"
+                  :search="search">
       <template v-slot:item.prov_name="{ item }">
         {{ item.prov_name.substr(0,63) }}
         <span v-if="item.prov_name.length>63">...</span>
@@ -229,6 +230,7 @@
           { text: 'Status', value: 'error_id' },
         ],
         harvest_jobs: [],
+        mutable_dt_options: {},
         footer_props: { 'items-per-page-options': [10,50,100,-1] },
         selectedRows: [],
         mutable_filters: { ...this.filters },
@@ -399,6 +401,15 @@
             this.inst_filter = null;
             this.rangeKey += 1;           // force re-render of the date-range component
         },
+        updateOptions(options) {
+            if (Object.keys(this.mutable_dt_options).length === 0) return;
+            Object.keys(this.mutable_dt_options).forEach( (key) =>  {
+                if (options[key] !== this.mutable_dt_options[key]) {
+                    this.mutable_dt_options[key] = options[key];
+                }
+            });
+            this.$store.dispatch('updateDatatableOptions',this.mutable_dt_options);
+        },
         processBulk() {
             this.success = "";
             this.failure = "";
@@ -467,15 +478,19 @@
         },
     },
     computed: {
-      ...mapGetters(['is_manager', 'is_admin', 'is_viewer', 'all_filters']),
+      ...mapGetters(['is_manager', 'is_admin', 'is_viewer', 'all_filters', 'datatable_options']),
     },
     beforeMount() {
       // Set page name in the store
       this.$store.dispatch('updatePageName','harvestqueue');
     },
     mounted() {
+      // Set datatable options with store-values
+      Object.assign(this.mutable_dt_options, this.datatable_options);
+
       // Subscribe to store updates
       this.$store.subscribe((mutation, state) => { localStorage.setItem('store', JSON.stringify(state)); });
+
       // Load data records
       this.updateRecords();
       console.log('HarvestJobs Component mounted.');
