@@ -93,7 +93,7 @@ class CcplusErrorsTableSeeder extends Seeder
                 'suggestion' => 'Work with the CC-PLUS admin to correct this error.',
                 'new_status' => 'Fail'
             ],
-            ['id'=>3030, 'message' => 'No Usage Available for Requested Dates', 'severity_id'=>12,
+            ['id'=>3030, 'message' => 'No Usage Available for Requested Dates', 'severity_id'=>0,
                 'explanation' => 'No usage data for the requested month exists or has been recorded by the provider.',
                 'suggestion' => 'If data should exist, check with the provider.',
                 'new_status' => 'Success'
@@ -116,30 +116,30 @@ class CcplusErrorsTableSeeder extends Seeder
                 'suggestion' => 'Work with the CC-PLUS admin and report provider to correct this error.',
                 'new_status' => 'Fail'
             ],
-            ['id'=>3050, 'message' => 'Parameter Not Recognized in this Context', 'severity_id' => 11,
+            ['id'=>3050, 'message' => 'Parameter Not Recognized in this Context', 'severity_id' => 0,
                 'explanation' => "The request asked for something that the server didn't recognize.",
                 'suggestion' => 'Work with the CC-PLUS admin to correct this error.',
-                'new_status' => 'Fail'
+                'new_status' => 'Success'
             ],
-            ['id'=>3060, 'message' => 'Invalid ReportFilter Value', 'severity_id' => 11,
+            ['id'=>3060, 'message' => 'Invalid ReportFilter Value', 'severity_id' => 0,
                 'explanation' => "The request asked to filter out some data that the server didn't recognize.",
                 'suggestion' => 'Work with the CC-PLUS admin to correct this error.',
-                'new_status' => 'Fail'
+                'new_status' => 'Success'
             ],
-            ['id'=>3061, 'message' => 'Incongruous ReportFilter Value', 'severity_id'=>12,
+            ['id'=>3061, 'message' => 'Incongruous ReportFilter Value', 'severity_id'=>0,
                 'explanation' => 'Specified filter values out of scope for the requested report.',
                 'suggestion' => 'Contact the provider to report this issue.',
-                'new_status' => 'Fail'
+                'new_status' => 'Success'
             ],
-            ['id'=>3062, 'message' => 'Invalid ReportAttribute Value', 'severity_id'=>12,
+            ['id'=>3062, 'message' => 'Invalid ReportAttribute Value', 'severity_id'=>0,
                 'explanation' => "The request asked for something that the server didn't recognize.",
                 'suggestion' => 'Work with the CC-PLUS admin to correct this error.',
-                'new_status' => 'Fail'
+                'new_status' => 'Success'
             ],
-            ['id'=>3063, 'message' => 'Components Not Supported', 'severity_id'=>12,
+            ['id'=>3063, 'message' => 'Components Not Supported', 'severity_id'=>0,
                 'explanation' => "The request asked component details, but reporting on component usage is not supported.",
                 'suggestion' => 'Work with the CC-PLUS admin to correct this error.',
-                'new_status' => 'Fail'
+                'new_status' => 'Success'
             ],
             ['id'=>3070, 'message' => 'Required ReportFilter Missing', 'severity_id' => 11,
                 'explanation' => 'The request required a filter that was not present.',
@@ -185,7 +185,7 @@ class CcplusErrorsTableSeeder extends Seeder
                  'suggestion' => 'Contact the provider to report this issue.',
                  'new_status' => 'Fail'
              ],
-             ['id'=>9030, 'message' => 'No Usage Reported for Requested Dates', 'severity_id' => 12,
+             ['id'=>9030, 'message' => 'No Usage Reported for Requested Dates', 'severity_id' => 0,
                  'explanation' => 'No usage data for the requested month was reported by the provider.',
                  'suggestion' => 'If data should exist, check with the provider.',
                  'new_status' => 'Success'

@@ -135,26 +135,25 @@ class Sushi extends Model
             if ($this->error_code == 1011) {
                 return "Pending";
             }
-           // Treat "No data" as success
-            if ($this->error_code == 3030) {
-                $this->message = "No Data For Requested Dates";
-                return "Success";
-            }
 
-           // Not queued, signal error.
+            // Not queued, signal error.
             $this->step = "API";
 
-            // Override JSON severity with value from CC+ Error table if the code is found there.
-            // If code unrecognized and severity is non-Fatal, return Success and let caller handle it.
-            $known_error = CcplusError::where('id',$this->error_code)->first();
+           // Override JSON severity with value from CC+ Error table if the code is found there.
+           // If code unrecognized and severity is non-Fatal, return Success and let caller handle it.
+            $known_error = CcplusError::with('severity')->where('id',$this->error_code)->first();
             if (!$known_error) {  // force to 9000 (unknown error)
-                $known_error = CcplusError::where('id',9000)->first();
+                $known_error = CcplusError::with('severity')->where('id',9000)->first();
             }
             if ($known_error) {
-                // ANY known exceptions in the JSON (except 1011 and 3030 above, INFO and DEBUG) returns Fail
-                if ($known_error->severity_id != 0 && $known_error->severity_id != 10) {
-                    return "Fail";
+                // Set the return message and severity string based on the error table
+                $this->message = $known_error->message;
+                $this->severity = strtoupper($known_error->severity->name);
+                // For severity_id= (0 or 10) (INFO or DEBUG) , return CcplusError->new_status
+                if ($known_error->severity_id == 0 || $known_error->severity_id == 10) {
+                    return $known_error->new_status;
                 }
+                return "Fail";
             }
         }
         if (json_last_error() !== JSON_ERROR_NONE) {
