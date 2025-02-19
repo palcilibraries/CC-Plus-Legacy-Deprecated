@@ -78,7 +78,7 @@ class SushiQHarvester extends Command
         }
 
        // Set error-severity so we only have to query for it once
-        $severities_error = Severity::where('name', '=', 'Error')->value('id');
+        $all_severities = Severity::get();
 
        // Get  (upto the first 100) Jobs in the Queue
         $all_jobs = SushiQueueJob::orderBy('id', 'ASC')->take(100)->get();
@@ -324,9 +324,9 @@ class SushiQHarvester extends Command
                     } else {    // Fail
                         $error_msg = '';
                        // Turn severity string into an ID
-                        $severity_id = Severity::where('name', 'LIKE', $sushi->severity . '%')->value('id');
+                        $severity_id = $all_severities->where('name', 'LIKE', $sushi->severity . '%')->pluck('id');
                         if ($severity_id === null) {  // if not found, set to 'Error' and prepend it to the message
-                            $severity_id = $severities_error;
+                            $severity_id = $all_severities->where('name', 'Error')->pluck('id');
                             $error_msg .= $sushi->severity . " : ";
                         }
 
