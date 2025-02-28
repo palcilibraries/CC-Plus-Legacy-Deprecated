@@ -196,7 +196,7 @@
         <span v-else>{{ item.id }}</span>
         <v-icon title="Manual Retry/Confirm Link" @click="goURL(item.retryUrl)" color="#3686B4">mdi-barley</v-icon>
       </template>
-      <template v-slot:item.error_id="{ item }">
+      <template v-slot:item.dStatus="{ item }">
         <span>{{ item.dStatus }}</span>
         <span v-if="item.error_id>0">&nbsp;({{ item.error_id }})</span>
       </template>
@@ -227,7 +227,7 @@
           { text: 'Report', value: 'report_name', align: 'center' },
           { text: 'Usage Date', value: 'yearmon' },
           { text: 'Harvest ID', value: 'id', align: 'center'},
-          { text: 'Status', value: 'error_id' },
+          { text: 'Status', value: 'dStatus' },
         ],
         harvest_jobs: [],
         mutable_dt_options: {},
@@ -243,6 +243,7 @@
                     {id:'Pending', opt:'Queued by Vendor'}, {id:'Paused', opt:'Paused'}, {id:'ReQueued', opt:'ReQueued'},
                     {id:'Waiting', opt:'Process Queue'}, {id:'Processing', opt:'Processing'} ],
         mutable_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
+        saved_options: { 'providers':[], 'institutions':[], 'groups':[], 'codes':[], 'statuses':[], 'reports':[], 'yymms':[] },
         allSelected: {'providers':false, 'institutions':false, 'groups':false, 'codes':false, 'statuses':false, 'yymms':false},
         truncatedResult: false,
         bulk_actions: ['Pause', 'ReStart', 'Kill'],
@@ -274,21 +275,27 @@
                  .then((response) => {
                      this.harvest_jobs = response.data.jobs;
                      this.truncatedResult = response.data.truncated;
-                     // update filtering options
-                     this.mutable_options['providers'] = (response.data.prov_ids.length > 0)
+                     // update filtering options; keep a copy in saved_options for resetting/clearing filters
+                     this.saved_options['providers'] = (response.data.prov_ids.length > 0)
                                             ? this.providers.filter( p => response.data.prov_ids.includes(p.id) )
                                             : [...this.providers];
-                     this.mutable_options['institutions'] = (response.data.inst_ids.length > 0)
-                                            ? this.institutions.filter( i => response.data.inst_ids.includes(i.id) )
+                     this.mutable_options['providers'] = [...this.saved_options.providers];
+                     this.saved_options['institutions'] = (response.data.inst_ids.length > 0)
+                                            ? this.institutions.filter( p => response.data.inst_ids.includes(p.id) )
                                             : [...this.institutions];
-                     this.mutable_options['reports'] = (response.data.rept_ids.length > 0)
+                     this.mutable_options['institutions'] = [...this.saved_options.institutions];
+                     this.saved_options['reports'] = (response.data.rept_ids.length > 0)
                                             ? this.reports.filter( r => response.data.rept_ids.includes(r.id) )
                                             : [...this.reports];
-                     this.mutable_options['statuses'] = (response.data.statuses.length > 0)
+                     this.mutable_options['reports'] = [...this.saved_options.reports];
+                     this.saved_options['statuses'] = (response.data.statuses.length > 0)
                                             ? this.statuses.filter( s => response.data.statuses.includes(s.id) )
                                             : [...this.statuses];
-                     this.mutable_options['codes'] = (response.data.codes.length > 0) ? [...response.data.codes] : [...this.codes];
-                     this.mutable_options['yymms'] = (response.data.yymms.length > 0) ? [...response.data.yymms] : [...this.yymms];
+                     this.mutable_options['statuses'] = [...this.saved_options.statuses];
+                     this.saved_options['codes'] = (response.data.codes.length > 0) ? [...response.data.codes] : [...this.codes];
+                     this.mutable_options['codes'] = [...this.saved_options.codes];
+                     this.saved_options['yymms'] = (response.data.yymms.length > 0) ? [...response.data.yymms] : [...this.yymms];
+                     this.mutable_options['yymms'] = [...this.saved_options.yymms];
                      // Make sure the codes and yymms options hold as much as they can (for clear filters)
                      if (this.mutable_options['codes'].length > this.codes.length) this.codes = [...this.mutable_options['codes']];
                      if (this.mutable_options['yymms'].length > this.yymms.length) this.yymms = [...this.mutable_options['yymms']];
@@ -338,7 +345,7 @@
             }
             // update allSelected flag
             if (typeof(this.allSelected[filt]) != 'undefined') {
-                this.allSelected[filt] = ( this.mutable_filters[filt].length==this[filt].length &&
+                this.allSelected[filt] = ( this.mutable_filters[filt].length==this.saved_options[filt].length &&
                                            this.mutable_filters[filt].length>0 );
             }
         },
@@ -349,7 +356,7 @@
                 this.mutable_filters[filter] = [];
                 if (filter=='institutions' || filter=='groups') this.inst_filter = null;
                 if ( Object.keys(this.mutable_options).includes(filter) ) {
-                  this.mutable_options[filter] = [...this[filter]];
+                  this.mutable_options[filter] = [...this.saved_options[filter]];
                 }
             }
             if (typeof(this.allSelected[filter]) != 'undefined') this.allSelected[filter] = false;
@@ -367,9 +374,9 @@
           // Turned an all-options filter ON
             } else {
                 if (filt == 'codes' || filt == 'statuses' || filt == 'yymms') {
-                    this.mutable_filters[filt] = [...this[filt]];
+                    this.mutable_filters[filt] = [...this.saved_options[filt]];
                 } else {
-                    this.mutable_filters[filt] = this[filt].map(o => o.id);
+                    this.mutable_filters[filt] = this.saved_options[filt].map(o => o.id);
                 }
                 this.allSelected[filt] = true;
                 if (filt == "institutions") {
@@ -394,7 +401,7 @@
             });
             // Reset error code options to inbound property
             Object.keys(this.mutable_options).forEach( (key) => {
-              this.mutable_options[key] = [...this[key]];
+              this.mutable_options[key] = [...this.saved_options[key]];
               if (typeof(this.allSelected[key]) != 'undefined') this.allSelected[key] = false;
             });
             this.$store.dispatch('updateAllFilters',this.mutable_filters);
