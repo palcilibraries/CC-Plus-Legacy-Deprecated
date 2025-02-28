@@ -118,7 +118,7 @@
         this.form.local_id = this.institution.local_id;
         this.form.is_active = this.institution.is_active;
         this.form.fte = this.institution.fte;
-        this.form.institution_groups = this.institution.groups;
+        this.form.institution_groups = this.institution.groups.map( g => g.id);
         this.form.notes = this.institution.notes;
       } else if (this.dtype == 'create') {
         this.form.name = '';

@@ -329,7 +329,7 @@ class InstitutionController extends Controller
                         $_rec['last_harvest']  = $_setting->lastHarvest->yearmon . " (run ";
                         $_rec['last_harvest'] .= substr($_setting->lastHarvest->updated_at,0,10) . ")";
                     } else {
-                        $_rec['last_harvest'] = $_setting->last_harvest;
+                        $_rec['last_harvest'] = null;
                     }
                 } else {
                     $_rec['last_harvest'] = null;
@@ -469,8 +469,8 @@ class InstitutionController extends Controller
             $institution->sushiSettings = $settings->toArray();
         }
 
-        // Tack on a tring for all the group memberships
-        $institution->groups = $institution->institutionGroups()->pluck('institution_group_id')->all();
+        // Tack on a string for all the group memberships
+        $institution->groups = $institution->institutionGroups()->get();
         $institution->group_string = "";
         foreach ($institution->institutionGroups as $group) {
             $institution->group_string .= ($institution->group_string == "") ? "" : ", ";
