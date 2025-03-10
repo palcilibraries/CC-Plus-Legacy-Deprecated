@@ -40,6 +40,14 @@
         <v-expansion-panel-header>Show/Hide Columns</v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-row class="d-flex wrap-column-boxes ma-0" no-gutters>
+            <v-col class="d-flex pa-2 justify-center" cols="6">
+              <v-btn class='btn' small type="button" color="primary" @click="showAllColumns(1)">Enable All</v-btn>
+            </v-col>
+            <v-col class="d-flex pa-2 justify-center" cols="6">
+              <v-btn class='btn' small type="button" color="primary" @click="showAllColumns(0)">Disable All</v-btn>
+            </v-col>
+          </v-row>
+          <v-row class="d-flex wrap-column-boxes ma-0" no-gutters>
             <v-col class="d-flex pa-2" cols="2" sm="2" v-for="field in mutable_fields" :key="field.id">
               <v-checkbox :label="field.text" v-model="field.active" :value="field.active"
                           @change="onFieldChange(field)"></v-checkbox>
@@ -493,6 +501,19 @@
                 }
             });
             this.$store.dispatch('updateDatatableOptions',this.mutable_options);
+        },
+        showAllColumns(flag) {
+            if (flag == 1) {
+              this.mutable_fields.forEach(field => {
+                  field.active = 1;
+                  this.onFieldChange(field);
+              })
+            } else {
+              this.mutable_fields.forEach(field => {
+                  field.active = 0;
+                  this.onFieldChange(field);
+              })
+            }
         },
         showForm (event) {
             this.configForm = true;
